@@ -10,3 +10,11 @@ class Group(db.Model):
 
 
 class GroupSchema(ma.Schema):
+
+
+    class Meta:
+        fields = ("group_id", "group_name")
+
+group_schema = GroupSchema()
+
+groups_schema = GroupSchema(many=True)

@@ -12,4 +12,12 @@ class Invite(db.Model):
 
 
 class InviteSchema(ma.Schema):
-    
+
+
+    class Meta:
+        fields = ("id", "out_id", "fam_grp_id", "member_id")
+
+invites_schema = InviteSchema(many=True)
+
+invite_schema = InviteSchema()
+

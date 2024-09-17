@@ -17,5 +17,14 @@ class Member(db.Model):
 
     class MemberSchema(ma.Schema):
 
+        class Meta:
+            fields = ("member_id", "name", "phone_number", "email", "is_admin", "username", "password", "fam_group_id")
+
+    member_schema = MemberSchema(exclude=["password"])
+
+    members_schema = MemberSchema(many=True, exclude=["password"])
+
+
+
         
 

@@ -15,3 +15,11 @@ class Outing(db.Model):
 
 
     class OutingSchema(ma.Schema):
+
+
+        class Meta:
+            fields = ("out_id", "start_date", "end_date", "title", "description", "public", "member_id")
+
+    outing_schema = OutingSchema()
+    
+    outings_schema = OutingSchema(many=True)

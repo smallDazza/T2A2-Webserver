@@ -15,3 +15,11 @@ class Bill(db.Model):
 
 
     class BillSchema(ma.Schema):
+
+
+        class Meta:
+            fields = ("bill_id", "due_date", "amount", "bill_title", "description", "paid", "member_id")
+
+    bill_schema = BillSchema()
+
+    bills_schema = BillSchema(many=True)
