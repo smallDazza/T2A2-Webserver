@@ -11,7 +11,7 @@ class Outing(db.Model):
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(200))
     public = db.Column(db.Boolean)
-    member_id = db.Column(db.Integer, db.ForeignKey("member.member_id"), nullable=False)
+    member_id = db.Column(db.Integer, db.ForeignKey("family_member.member_id"), nullable=False)
 
 
     class OutingSchema(ma.Schema):

@@ -11,8 +11,8 @@ class Member(db.Model):
     email = db.Column(db.String(50))
     is_admin = db.Column(db.Boolean, default=False)
     username = db.Column(db.String(20), nullable=False, unique=True)
-    password = db.Column(db.String(20), nullable=False)
-    fam_group_id = db.Column(db.Integer, db.ForeignKey("group.group_id"), nullable=False)
+    password = db.Column(db.String, nullable=False)
+    fam_group_id = db.Column(db.Integer, db.ForeignKey("family_group.group_id"), nullable=False)
 
 
     class MemberSchema(ma.Schema):
