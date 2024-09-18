@@ -6,16 +6,28 @@ class Invite(db.Model):
     __table_name__ = "invite_outing"
 
     id = db.Column(db.Integer, primary_key=True)
-    out_id = db.Column(db.Integer, db.ForeignKey("outing.out_id"), nullable=False)
-    fam_grp_id = db.Column(db.Integer, db.ForeignKey("family_group.group_id"), nullable=False)
-    member_id = db.Column(db.Integer, db.ForeignKey("family_member.member_id"), nullable=True)
+    out_id = db.Column(db.Integer, db.ForeignKey("outing.out_id", ondelete= "cascade"), nullable=False)
+# the addition here of 'ondelete="set null" means if a group from the family_group table is deleted all associated invite records to that group will be set to null.
+    fam_grp_id = db.Column(db.Integer, db.ForeignKey("family_group.group_id", ondelete= "set null"), nullable=True)
+# the addition here of 'ondelete="set null" means if a member from the family_member table is deleted all associated invite records to that member will be set to null.
+    member_id = db.Column(db.Integer, db.ForeignKey("family_member.member_id", ondelete= "set null"), nullable=True)
+
+# member creates the relationship with the family_member table
+    member = db.relationship("Member", back_populates= "invites") 
+# group creates the relationship with the Group table
+    group = db.relationship("Group", back_populates= "invites")
+# outing creates the relationship with the Outing table
+    outing = db.relationship("Outing", back_populates= "invites")
 
 
 class InviteSchema(ma.Schema):
+    member = fields.Nested("MemberSchema", exclude= ["invites"])
+    group = fields.Nested("GroupSchema", exclude= ["invites"])
+    outing = fields.Nested("OutingSchema", exclude= ["invites"])
 
 
     class Meta:
-        fields = ("id", "out_id", "fam_grp_id", "member_id")
+        fields = ("id", "member", "group", "outing")
 
 invites_schema = InviteSchema(many=True)
 
