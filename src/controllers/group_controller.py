@@ -27,4 +27,4 @@ def create_group():
             }, 201
     except IntegrityError as err:
         if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION:
-            return {"Error": f"This Family group name already exists. Please add a new Family group name"}, 400
+            return {"Error": "This Family group name already exists. Please add a new Family group name"}, 400
