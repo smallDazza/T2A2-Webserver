@@ -2,7 +2,7 @@ from flask import Blueprint, request
 from models.member import Member, MemberSchema, member_schema
 from models.group import Group, GroupSchema, group_schema
 from init import bcrypt, db
-from utils import auth_as_admin_decorator
+
 
 from sqlalchemy.exc import IntegrityError
 from psycopg2 import errorcodes
@@ -24,7 +24,7 @@ def create_member():
     if group:
         family_assigned = group.group_id
     else:
-        return {"Error": f"That group name: {user_group}, does not exist"}, 404
+        return {"Error": f"That group name: {user_group}, does not exist. You must create a family group before creating a family member."}, 404
 
     member = Member(
         name = member_data.get("name"),
@@ -83,18 +83,21 @@ def update_member():
         if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION:
             return {"Error": "An invalid token or same username has been used."}, 400
         
-@member_bp.route("/delete/<int:id", methods= ["DELETE"])
+@member_bp.route("/delete/<int:id>", methods= ["DELETE"])
 @jwt_required()
-@auth_as_admin_decorator
 def delete_member(id):
     stmt = db.select(Member).filter_by(member_id = id)
     member = db.session.scalar(stmt)
-    if member:
+    stmt2 = db.select(Member).filter_by(member_id = get_jwt_identity())
+    member2 = db.session.scalar(stmt2)
+    if not member:
+        return {"Error": f"Member with id: {id}, does not exist."}, 404
+    if member2.is_admin and member2:
         db.session.delete(member)
         db.session.commit()
-        return {"message": f"User with id: {id} is deleted"}
+        return {"message": f"Member with id: {id} is deleted."}, 200
     else:
-        return {"Error": f"User with id: {id} does not exist."}, 404
+        return {"Error": "You are not a admin member and cannot delete other members."}, 404
 
 
 

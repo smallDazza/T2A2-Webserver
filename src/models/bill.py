@@ -10,7 +10,7 @@ class Bill(db.Model):
     amount = db.Column(db.Float, nullable=False)
     bill_title = db.Column(db.String(50), nullable=False)
     description = db.Column(db.String(100))
-    paid = db.Column(db.Boolean)
+    paid = db.Column(db.Boolean, default=False)
 # the addition here of 'ondelete="set null" means if a member from the family_member table is deleted all associated bill records to that member will be set to null.
     member_id = db.Column(db.Integer, db.ForeignKey("family_member.member_id", ondelete= "set null"), nullable=True)
 
@@ -19,7 +19,7 @@ class Bill(db.Model):
 
 
 class BillSchema(ma.Schema):
-    member = fields.Nested("MemberSchema", exclude= ["bills"])
+    member = fields.Nested("MemberSchema", only=["member_id", "name"])
 
 
     class Meta:

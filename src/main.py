@@ -5,6 +5,7 @@ from init import db, ma, bcrypt, jwt
 from controllers.cli_controller import db_commands
 from controllers.mem_controller import member_bp
 from controllers.group_controller import group_bp
+from controllers.bill_controller import bill_bp
 
 
 
@@ -22,6 +23,8 @@ def create_app():
     app.register_blueprint(db_commands)
     app.register_blueprint(member_bp)
     app.register_blueprint(group_bp)
+    app.register_blueprint(bill_bp)
+
 
     return app
 
