@@ -21,14 +21,14 @@ class Outing(db.Model):
     invites = db.relationship("Invite", back_populates= "outing", cascade= "all, delete", passive_deletes=True)
 
 
-    class OutingSchema(ma.Schema):
-        member = fields.Nested("MemberSchema", exclude= ["outings"])
-        invites = fields.Nested("InviteSchema", many=True, exclude= ["outing"])
+class OutingSchema(ma.Schema):
+    member = fields.Nested("MemberSchema", exclude= ["outings"])
+    invites = fields.Nested("InviteSchema", many=True, exclude= ["outing"])
 
 
-        class Meta:
-            fields = ("out_id", "start_date", "end_date", "title", "description", "public", "member", "invites")
+    class Meta:
+        fields = ("out_id", "start_date", "end_date", "title", "description", "public", "member", "invites")
 
-    outing_schema = OutingSchema()
+outing_schema = OutingSchema()
     
-    outings_schema = OutingSchema(many=True)
+outings_schema = OutingSchema(many=True)

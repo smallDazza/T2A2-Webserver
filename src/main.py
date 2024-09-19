@@ -3,6 +3,8 @@ from flask import Flask
 
 from init import db, ma, bcrypt, jwt
 from controllers.cli_controller import db_commands
+from controllers.mem_controller import member_bp
+from controllers.group_controller import group_bp
 
 
 
@@ -18,6 +20,8 @@ def create_app():
     jwt.init_app(app)
 
     app.register_blueprint(db_commands)
+    app.register_blueprint(member_bp)
+    app.register_blueprint(group_bp)
 
     return app
 

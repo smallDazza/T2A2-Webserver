@@ -6,7 +6,7 @@ class Group(db.Model):
     __tablename__ = "family_group"
     
     group_id = db.Column(db.Integer, primary_key=True)
-    group_name = db.Column(db.String(100), nullable=False)
+    group_name = db.Column(db.String(100), nullable=False, unique=True)
 
 # member creates a one to many relationship with family_member table.
 # cascade & passive_deletes works with 'ondelete=CASCADE' in the Member foreign key to delete all members in a group if the group is deleted.
@@ -17,6 +17,7 @@ class Group(db.Model):
 
 
 class GroupSchema(ma.Schema):
+    
     members = fields.Nested("MemberSchema", exclude= ["group"])
     invites = fields.Nested("InviteSchema", many=True, exclude= ["group"])
 

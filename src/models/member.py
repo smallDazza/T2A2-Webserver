@@ -28,19 +28,20 @@ class Member(db.Model):
     group = db.relationship("Group", back_populates= "members")
 
 
-    class MemberSchema(ma.Schema):
-        bills = fields.Nested("BillSchema", many= True, exclude= ["member"])
-        outings = fields.Nested("OutingSchema", many=True, exclude= ["member"])
-        invites = fields.Nested("Invite", many=True, exclude= ["member"])
-        group = fields.Nested("GroupSchema", exclude= ["members"])
+class MemberSchema(ma.Schema):
+    
+    bills = fields.Nested("BillSchema", many= True, exclude= ["member"])
+    outings = fields.Nested("OutingSchema", many=True, exclude= ["member"])
+    invites = fields.Nested("InviteSchema", many=True, exclude= ["member"])
+    group = fields.Nested("GroupSchema", exclude= ["members"])
 
 
-        class Meta:
-            fields = ("member_id", "name", "phone_number", "email", "is_admin", "username", "password", "bills", "outings", "invites", "group")
+    class Meta:
+        fields = ("member_id", "name", "phone_number", "email", "is_admin", "username", "password", "bills", "outings", "invites", "group")
 
-    member_schema = MemberSchema(exclude=["password"])
+member_schema = MemberSchema(exclude=["password"])
 
-    members_schema = MemberSchema(many=True, exclude=["password"])
+members_schema = MemberSchema(many=True, exclude=["password"])
 
 
 

@@ -18,13 +18,13 @@ class Bill(db.Model):
     member = db.relationship("Member", back_populates= "bills")
 
 
-    class BillSchema(ma.Schema):
-        member = fields.Nested("MemberSchema", exclude= ["bills"])
+class BillSchema(ma.Schema):
+    member = fields.Nested("MemberSchema", exclude= ["bills"])
 
 
-        class Meta:
-            fields = ("bill_id", "due_date", "amount", "bill_title", "description", "paid", "member")
+    class Meta:
+        fields = ("bill_id", "due_date", "amount", "bill_title", "description", "paid", "member")
 
-    bill_schema = BillSchema()
+bill_schema = BillSchema()
 
-    bills_schema = BillSchema(many=True)
+bills_schema = BillSchema(many=True)
