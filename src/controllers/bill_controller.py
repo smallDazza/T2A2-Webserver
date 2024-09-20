@@ -2,6 +2,8 @@ from flask import Blueprint, request
 from models.bill import Bill, BillSchema, bill_schema, bills_schema
 from models.member import Member, MemberSchema
 from init import db
+from datetime import datetime
+import json
 
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
@@ -15,14 +17,14 @@ def create_bill():
 # Proceed if these 3 fields are present.
         pass
     else:
-        return {"Error": "Some fields are missing or empty. Due_date, amount & bill_title must have data entered."}, 404
+        return {"Error": "Some fields are missing or empty = due_date, amount & bill_title must have data entered."}, 404
     
     bill = Bill(
         due_date = body_data.get("due_date"),
         amount = body_data.get("amount"),
         bill_title = body_data.get("bill_title"),
         description = body_data.get("description"),
-        paid = body_data.get("paid"),
+        paid = body_data.get("paid")
         
     )
     stmt = db.select(Member).filter_by(member_id=get_jwt_identity())
@@ -39,6 +41,27 @@ def create_bill():
     else:
         {"Error": "You do not have the authority to create Bills"}, 401
 
+@bill_bp.route("/", methods= ["GET"])
+def display_bills():
+    try:
+        body_data = request.get_json()
+        user_date = body_data.get("bills_due_date_past")
+        if not user_date:
+            return {"Error": "Must enter a date , cannot be blank."}, 400
+        user_date = datetime.strptime(user_date, "%Y-%m-%d")
+    except (ValueError, TypeError):
+        return {"Error": f"Invalid date format entered. Please enter YYYY-MM-DD."}
+
+    stmt = db.select(Bill).where(Bill.due_date >= user_date)
+    bills = db.session.scalars(stmt).all()
+
+    if not bills:
+        return {"message": f"There are no bills with a due date past: {user_date} ."}, 200
+    
+    return {
+        "Bills due date list": bills_schema.dump(bills)
+    }
+
 @bill_bp.route("/update/<int:id>", methods= ["PUT", "PATCH"])
 @jwt_required()
 def update_bill(id):
@@ -51,11 +74,11 @@ def update_bill(id):
 
     if bill and member:
 # Update the fields if they exist in the request data, or keep the current values
-        bill.due_date = body_data.get("due_date", bill.due_date)  
-        bill.amount = body_data.get("amount", bill.amount)       
-        bill.bill_title = body_data.get("bill_title", bill.bill_title)
-        bill.description = body_data.get("description", bill.description)
-        bill.paid = body_data.get("paid", bill.paid)
+        bill.due_date = body_data.get("due_date") or bill.due_date  
+        bill.amount = body_data.get("amount") or bill.amount       
+        bill.bill_title = body_data.get("bill_title") or bill.bill_title
+        bill.description = body_data.get("description") or bill.description
+        bill.paid = body_data.get("paid") or bill.paid
         bill.member_id = member.member_id
         
         db.session.commit()

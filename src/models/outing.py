@@ -22,7 +22,7 @@ class Outing(db.Model):
 
 
 class OutingSchema(ma.Schema):
-    member = fields.Nested("MemberSchema", exclude= ["outings"])
+    member = fields.Nested("MemberSchema", only=["member_id", "name"])
     invites = fields.Nested("InviteSchema", many=True, exclude= ["outing"])
 
 
