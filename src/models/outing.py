@@ -10,7 +10,7 @@ class Outing(db.Model):
     end_date = db.Column(db.Date, nullable=False)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(200))
-    public = db.Column(db.Boolean)
+    public = db.Column(db.Boolean, default=False)
 # the addition here of 'ondelete="set null" means if a member from the family_member table is deleted all associated outing records to that member will be set to null.
     member_id = db.Column(db.Integer, db.ForeignKey("family_member.member_id", ondelete= "set null"), nullable=True)
 

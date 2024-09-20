@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 from models.outing import Outing, OutingSchema, outing_schema, outings_schema
 from models.member import Member, MemberSchema
+from controllers.invite_controller import private_invite
 from init import db
 from datetime import datetime
 
@@ -19,7 +20,7 @@ def create_outing():
         pass
     else:
         return {"Error": "Some fields are missing or empty = start_date, end_date & title must have data entered."}, 404
-    
+         
     outing = Outing(
         start_date = body_data.get("start_date"),
         end_date = body_data.get("end_date"),
@@ -35,9 +36,18 @@ def create_outing():
         db.session.add(outing)
         db.session.commit()
 
-        return {
-        "Created Outing": outing_schema.dump(outing)
-        }, 201
+        if not outing.public:
+            response = private_invite(outing.out_id, member.fam_group_id)
+        else:
+            response = None
+
+        display_response = {
+            "Created Outing": outing_schema.dump(outing)
+        }
+        if response:
+            display_response["If public is false"] = f"{response}"
+
+        return display_response, 201
     else:
         {"Error": "You do not have the authority to create Outings"}, 401
 

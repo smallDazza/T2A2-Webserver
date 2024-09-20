@@ -1,10 +1,10 @@
 from flask import Blueprint, request
 from models.member import Member, MemberSchema, member_schema
 from models.group import Group, GroupSchema, group_schema
-from group_controller import create_group
+from controllers.group_controller import create_group
 from init import bcrypt, db
 
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, ProgrammingError
 from psycopg2 import errorcodes
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 from datetime import timedelta
@@ -14,39 +14,44 @@ member_bp = Blueprint("member", __name__, url_prefix="/member")
 
 @member_bp.route("/create", methods= ["POST"])
 def create_member():
+    try:
 # get the member & group data from the json request
-    body_data = request.get_json()
-    member_data = body_data.get("member")
-    group_data = body_data.get("family_group")
-    user_group = group_data.get("group_name")
+        body_data = request.get_json()
+        name = body_data.get("name")
+        password = body_data.get("password")
+        group = body_data.get("family_group_name")
+        if all(body_data.get(field) for field in ["name", "password", "family_group_name"]):
+# Proceed if these 3 fields are present.
+            pass
+        else:
+            return {"Error": "Some fields are missing or empty = name, password & family group name must have data entered."}, 404
 
-    check_blank = group_data.get("group_name")
-    if check_blank == "":
-        return {"Error": "The family group name cannot be blank"}, 400
+        family_group_id = create_group(group)  
 
-    group = create_group(user_group)
-    if group == -1:
-        return {"Error": "This Family group name already exists and cannot be used. Please add a new Family group name"}, 400
+        member = Member(
+            name = body_data.get("name"),
+            phone_number = body_data.get("phone_number"),
+            email = body_data.get("email"),
+            is_admin = body_data.get("is_admin"),
+            username = body_data.get("username"),
+            fam_group_id = family_group_id  
+        )
+    # hash the password into the table.
+        if password:
+            member.password = bcrypt.generate_password_hash(password).decode("utf-8")    
+            
+        db.session.add(member)
+        db.session.commit()
 
-    member = Member(
-        name = member_data.get("name"),
-        phone_number = member_data.get("phone_number"),
-        email = member_data.get("email"),
-        is_admin = member_data.get("is_admin"),
-        username = member_data.get("username"),
-        fam_group_id = group  
-    )
-# hash the password into the table.
-    password = member_data.get("password")
-    if password:
-        member.password = bcrypt.generate_password_hash(password).decode("utf-8")    
-        
-    db.session.add(member)
-    db.session.commit()
-
-    return {
-        "Created Member": member_schema.dump(member)
-    }, 201
+        return {
+            "Created Member": member_schema.dump(member)
+        }, 201
+    except IntegrityError as err:
+        if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION: 
+            return {"Error": "That Username already exists. Please re-enter a new username."}, 400
+    except ProgrammingError as err:
+        if err.orig.pgcode == errorcodes.UNDEFINED_FUNCTION:
+            return {"Error": "Incorrect format for group name."}, 400
 
 @member_bp.route("/login", methods= ["POST"])
 def member_login():

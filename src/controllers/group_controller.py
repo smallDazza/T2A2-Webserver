@@ -3,17 +3,14 @@ from models.group import Group, GroupSchema, group_schema
 from models.member import Member, MemberSchema
 from init import bcrypt, db
 
-from sqlalchemy.exc import IntegrityError
-from psycopg2 import errorcodes
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 
 group_bp = Blueprint("group", __name__, url_prefix="/group")
 
-#@group_bp.route("/create", methods=["POST"])
 def create_group(family_name):
 # because the family_group table has a mandatory relationship with the family_member table = the group must be commited first. 
-        stmt = db.select(Group).where(group_name = family_name)
+        stmt = db.select(Group).where(Group.group_name == family_name)
         name = db.session.scalar(stmt)
         
         group = Group(
@@ -24,7 +21,8 @@ def create_group(family_name):
             db.session.commit()
             return group.group_id
         else:
-            return -1        
+             return name.group_id
+                
 
 @group_bp.route("/delete/<int:id>", methods= ["DELETE"])
 @jwt_required()
