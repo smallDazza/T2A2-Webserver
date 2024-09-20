@@ -3,9 +3,9 @@ from models.bill import Bill, BillSchema, bill_schema, bills_schema
 from models.member import Member, MemberSchema
 from init import db
 from datetime import datetime
-import json
 
 from flask_jwt_extended import jwt_required, get_jwt_identity
+
 
 bill_bp = Blueprint("bill", __name__, url_prefix= "/bill")
 

@@ -7,29 +7,24 @@ from sqlalchemy.exc import IntegrityError
 from psycopg2 import errorcodes
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
+
 group_bp = Blueprint("group", __name__, url_prefix="/group")
 
-@group_bp.route("/create", methods=["POST"])
-def create_group():
-    try:
+#@group_bp.route("/create", methods=["POST"])
+def create_group(family_name):
 # because the family_group table has a mandatory relationship with the family_member table = the group must be commited first. 
-        body_data = GroupSchema().load(request.get_json())
-        check_blank = body_data.get("group_name")
-        if check_blank == "":
-            return {"Error": "The group name cannot be blank"}, 400
+        stmt = db.select(Group).where(group_name = family_name)
+        name = db.session.scalar(stmt)
+        
         group = Group(
-            group_name = body_data.get("group_name")
+            group_name = family_name
         ) 
-
-        db.session.add(group)
-        db.session.commit()
-
-        return {
-            "Created Group": group_schema.dump(group)
-            }, 201
-    except IntegrityError as err:
-        if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION:
-            return {"Error": "This Family group name already exists. Please add a new Family group name"}, 400
+        if not name:
+            db.session.add(group)
+            db.session.commit()
+            return group.group_id
+        else:
+            return -1        
 
 @group_bp.route("/delete/<int:id>", methods= ["DELETE"])
 @jwt_required()

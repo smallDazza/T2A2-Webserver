@@ -3,10 +3,10 @@ from models.outing import Outing, OutingSchema, outing_schema, outings_schema
 from models.member import Member, MemberSchema
 from init import db
 from datetime import datetime
-import json
 
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import extract, or_
+
 
 outing_bp = Blueprint("outing", __name__, url_prefix= "/outing")
 

@@ -1,8 +1,8 @@
 from flask import Blueprint, request
 from models.member import Member, MemberSchema, member_schema
 from models.group import Group, GroupSchema, group_schema
+from group_controller import create_group
 from init import bcrypt, db
-
 
 from sqlalchemy.exc import IntegrityError
 from psycopg2 import errorcodes
@@ -20,11 +20,13 @@ def create_member():
     group_data = body_data.get("family_group")
     user_group = group_data.get("group_name")
 
-    group = Group.query.filter_by(group_name = user_group).first()
-    if group:
-        family_assigned = group.group_id
-    else:
-        return {"Error": f"That group name: {user_group}, does not exist. You must create a family group before creating a family member."}, 404
+    check_blank = group_data.get("group_name")
+    if check_blank == "":
+        return {"Error": "The family group name cannot be blank"}, 400
+
+    group = create_group(user_group)
+    if group == -1:
+        return {"Error": "This Family group name already exists and cannot be used. Please add a new Family group name"}, 400
 
     member = Member(
         name = member_data.get("name"),
@@ -32,7 +34,7 @@ def create_member():
         email = member_data.get("email"),
         is_admin = member_data.get("is_admin"),
         username = member_data.get("username"),
-        fam_group_id = family_assigned  
+        fam_group_id = group  
     )
 # hash the password into the table.
     password = member_data.get("password")
