@@ -42,8 +42,15 @@ def create_bill():
         {"Error": "You do not have the authority to create Bills"}, 401
 
 @bill_bp.route("/", methods= ["GET"])
+@jwt_required()
 def display_bills():
     try:
+        stmt = db.select(Member).filter_by(member_id = get_jwt_identity())
+        member = db.session.scalar(stmt)
+        if not member:
+            return {"Error": "Invalid token or member not found."}, 404
+        
+        group_id = member.fam_group_id
         body_data = request.get_json()
         user_date = body_data.get("bills_due_date_past")
         if not user_date:
@@ -52,15 +59,17 @@ def display_bills():
     except (ValueError, TypeError):
         return {"Error": f"Invalid date format entered. Please enter YYYY-MM-DD."}
 
-    stmt = db.select(Bill).where(Bill.due_date >= user_date)
-    bills = db.session.scalars(stmt).all()
+    stmt2 = (
+        db.select(Bill).join(Member).where(Member.fam_group_id == group_id, Bill.due_date >= user_date)
+    )
+    bills = db.session.scalars(stmt2).all()
 
     if not bills:
         return {"message": f"There are no bills with a due date past: {user_date} ."}, 200
     
     return {
         "Bills due date list": bills_schema.dump(bills)
-    }
+    }, 200
 
 @bill_bp.route("/update/<int:id>", methods= ["PUT", "PATCH"])
 @jwt_required()
