@@ -84,9 +84,9 @@ def update_bill(id):
         db.session.commit()
         return {
             "Bill updated": "The bill fields have been updated."
-        }, 201
+        }, 200
     else:
-        return {"Error": "This bill does not exist or you dont have authority."}
+        return {"Error": "This bill does not exist or you dont have authority."}, 404
 
 
 @bill_bp.route("/delete/<int:id>", methods= ["DELETE"])

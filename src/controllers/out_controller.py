@@ -48,7 +48,7 @@ def create_outing():
         if response:
             display_response["If public is false"] = f"{response}"
 
-        return display_response, 201
+        return display_response, 200
     else:
         {"Error": "You do not have the authority to create Outings"}, 401
 
@@ -102,9 +102,9 @@ def update_outing(id):
         db.session.commit()
         return {
             "Outing updated": "The outing fields have been updated."
-        }, 201
+        }, 200
     else:
-        return {"Error": "This outing does not exist or you dont have authority."}
+        return {"Error": "This outing does not exist or you dont have authority."}, 401
 
 
 @outing_bp.route("/delete/<int:id>", methods= ["DELETE"])

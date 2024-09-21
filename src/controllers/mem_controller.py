@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-from models.member import Member, MemberSchema, member_schema
+from models.member import Member, MemberSchema, member_schema, members_schema
 from models.group import Group, GroupSchema, group_schema
 from controllers.group_controller import create_group
 from init import bcrypt, db
@@ -75,7 +75,25 @@ def member_login():
             return {"Error": "The username or password is incorrect"}, 400
     except (ProgrammingError,TypeError):
         return {"Error": "Invalid field format. Please re-enter in correct format"}, 400
+
+@member_bp.route("/view", methods= ["GET"])
+@jwt_required()
+def view_members():
+    stmt = db.select(Member).filter_by(member_id = get_jwt_identity())
+    member = db.session.scalar(stmt)
+    if not member:
+        return {"Error": "Invalid member token."}
     
+    stmt2 = db.select(Member).where(Member.fam_group_id == member.fam_group_id)
+    members = db.session.scalars(stmt2).all()
+
+    if members:
+        return {
+            "The family members in your family group are": members_schema.dump(members)
+        }, 200
+    else:
+        return {"Error": "There are no other members in your family group."}, 404
+
 @member_bp.route("/update/<int:id>", methods= ["PUT", "PATCH"])
 @jwt_required()
 def update_member(id):
@@ -87,11 +105,11 @@ def update_member(id):
         stmt2 = db.select(Member).filter_by(member_id = get_jwt_identity())
         member2 = db.session.scalar(stmt2)
 # if the user with the token does not belong to the same family group
-        if member2.fam_group_id != member.fam_group_id:
+        if not member or member2.fam_group_id != member.fam_group_id:
             return {
-            "Error": f"Member with id: {id} does not exist in your family group. Delete not permitted."
+            "Error": f"Member with id: {id} does not exist in your family group. Update not permitted."
         }, 404
-        if member2 and member2.is_admin:
+        if member2.is_admin:
             member.username = body_data.get("username") or member.username
             member.name = body_data.get("name") or member.name
             member.phone_number = body_data.get("phone_number") or member.phone_number
@@ -103,11 +121,11 @@ def update_member(id):
             db.session.commit()
             return member_schema.dump(member), 200
         else:
-            return {"Error": "This member does not exist or is not an admin.Only admin users can update"}, 400
+            return {"Error": "You are not an admin user.Only admin users can update"}, 400
     except IntegrityError as err:
         if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION:
             return {"Error": "An invalid token or same username has been used."}, 400
-    except (ProgrammingError,TypeError):
+    except (ProgrammingError,TypeError, StatementError):
         return {"Error": "Invalid field format. Please re-enter in correct format"}, 400
     except ValidationError as err:
         return {"Error": f"These fields do not exist: {err}, please remove."}, 400
