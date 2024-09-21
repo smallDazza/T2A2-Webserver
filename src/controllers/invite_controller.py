@@ -62,8 +62,33 @@ def public_invites():
     stmt3 = db.select(Invite).where(fam_grp_id = member.fam_group_id)
     group_id = db.session.scalar(stmt3)
     if member and public and group_id:
-        return {"Your private family group invites": invites_schema.dump(group_id)}, 200
+        return {"Your public family group invites": invites_schema.dump(group_id)}, 200
     
+@invite_bp.route("/response", methods= ["POST"])
+@jwt_required()
+def invite_response():
+    body_data = InviteSchema().load(request.get_json())
+    if all(body_data.get(field) for field in ["outing_id", "family_group_id", "accept_invite"]):
+# Proceed if these 3 fields are present.
+        pass
+    else:
+        return {"Error": "Some fields are missing or empty = outing_id, family_group_id & accept_invite must have data entered."}, 404
+    stmt = db.select(Member).filter_by(member_id = get_jwt_identity())
+    member = db.session.scalar(stmt)
+
+    accept = Invite(
+        out_id = body_data.get("outing_id"),
+        fam_grp_id = body_data.get("family_group_id"),
+        accept_invite = body_data.get("accept_invite"),
+        message = body_data.get("message"),
+        member_id = member.memberid
+    )
+    if member:
+        db.session.add(accept)
+        db.session.commit()
+        return {
+            "Invitation Response": invite_schema.dump(accept)
+        }, 200
 
 
 

@@ -6,6 +6,8 @@ class Invite(db.Model):
     __table_name__ = "invite_outing"
 
     id = db.Column(db.Integer, primary_key=True)
+    accept_invite = db.Column(db.Boolean)
+    message = db.Column(db.String(100))
     out_id = db.Column(db.Integer, db.ForeignKey("outing.out_id", ondelete= "cascade"), nullable=False)
 # the addition here of 'ondelete="set null" means if a group from the family_group table is deleted all associated invite records to that group will be set to null.
     fam_grp_id = db.Column(db.Integer, db.ForeignKey("family_group.group_id", ondelete= "set null"), nullable=True)
@@ -27,7 +29,7 @@ class InviteSchema(ma.Schema):
 
 
     class Meta:
-        fields = ("id", "member", "group", "outing")
+        fields = ("id", "accept_invite", "message", "member", "group", "outing")
 
 invites_schema = InviteSchema(many=True)
 

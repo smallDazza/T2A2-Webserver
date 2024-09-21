@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 from models.outing import Outing, OutingSchema, outing_schema, outings_schema
 from models.member import Member, MemberSchema
+from models.invite import Invite, InviteSchema
 from controllers.invite_controller import private_invite
 from init import db
 from datetime import datetime
@@ -68,17 +69,18 @@ def display_outings():
             (extract("year", Outing.end_date) == user_date.year) & (extract("month", Outing.end_date) == user_date.month)
         )
     )
-    
     outings = db.session.scalars(stmt).all()
+    stmt2 = db.select(Invite).where(Invite.fam_grp_id == Member.fam_group_id)
+    family_grp = db.session.scalar(stmt2)
 
-    if not outings:
-        return {"message": f"There are no outings during the: {user_date_ent}."}, 200
+    if not outings and family_grp:
+        return {"message": f"There are no family outings during the: {user_date_ent}."}, 200
     
     return {
         f"Outings for {user_date_ent}": outings_schema.dump(outings)
     }, 200
 
-@outing_bp.route("/outing/<int:id>", methods= ["PUT", "PATCH"])
+@outing_bp.route("/update/<int:id>", methods= ["PUT", "PATCH"])
 @jwt_required()
 def update_outing(id):
     body_data = OutingSchema().load(request.get_json(), partial=True)
