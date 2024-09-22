@@ -38,7 +38,7 @@ def public_invite():
             out_id = outing_id,
             fam_grp_id = group_id,
             member_id = member.member_id,
-            message = body_data.get("message")
+            invite_message = body_data.get("invite_message")
         )
         if member.is_admin:
             db.session.add(pub_invite)
@@ -48,7 +48,7 @@ def public_invite():
                 "A public invitation for your outing has been created.": {
                     "The outing id": pub_invite.out_id,
                     "Group id to invite": pub_invite.fam_grp_id,
-                    "Your message": pub_invite.message }
+                    "Your message": pub_invite.invite_message }
             }, 200
         else:
             return {"Error": "You are not an admin and cannot create public invites."}, 401
@@ -79,31 +79,27 @@ def public_invites():
     if member and public and group_id:
         return {"Your public family group invites": invites_schema.dump(group_id)}, 200
     
-@invite_bp.route("/response", methods= ["POST"])
+@invite_bp.route("/response/<int:invite_id>", methods= ["PUT", "PATCH"])
 @jwt_required()
-def invite_response():
-    body_data = request.get_json()
-    if all(body_data.get(field) for field in ["outing_id", "family_group_id", "accept_invite"]):
-# Proceed if these 3 fields are present.
-        pass
-    else:
-        return {"Error": "Some fields are missing or empty = outing_id, family_group_id & accept_invite must have data entered."}, 404
-    stmt = db.select(Member).filter_by(member_id = get_jwt_identity())
+def invite_response(invite_id):
+    body_data = InviteSchema().load(request.get_json(), partial=True)
+    
+    stmt = db.select(Member).filter_by(member_id=get_jwt_identity())
     member = db.session.scalar(stmt)
+    stmt2 = db.select(Invite).filter_by(id = invite_id)
+    invite = db.session.scalar(stmt2)
 
-    accept = Invite(
-        out_id = body_data.get("outing_id"),
-        fam_grp_id = body_data.get("family_group_id"),
-        accept_invite = body_data.get("accept_invite"),
-        message = body_data.get("message"),
-        member_id = member.member_id
-    )
-    if member:
-        db.session.add(accept)
+    if member and invite:
+# Update the fields if they exist in the request data, or keep the current values       
+        accept_invite = body_data.get("accept_invite") or accept_invite
+        response_message = body_data.get("response_message") or response_message
+
         db.session.commit()
         return {
-            "Invitation Response": invite_schema.dump(accept)
+            "Invitation Response": invite_schema.dump(invite)
         }, 200
+    else:
+        return {"Error": "No invite found or you dont have authority to respond."}, 401
 
 
 

@@ -34,8 +34,11 @@ def delete_group(id):
     if not group:
         return {"Error": f"Group with id: {id}, does not exist"}, 404
     if auth_member.is_admin and auth_member:
-        db.session.delete(group)
-        db.session.commit()
-        return {"messsage": f"Group with id: {id}, has been deleted."}, 200
+        if auth_member.fam_group_id == group.group_id:
+            db.session.delete(group)
+            db.session.commit()
+            return {"messsage": f"Group with id: {id}, has been deleted."}, 200
+        else:
+             return {"Error": "Cannot delete family groups you are not assigned to. Admin user can only delete the group they belong to."}, 404
     else:
         return {"Error": "You are not a admin member and cannot delete family groups."}, 404
