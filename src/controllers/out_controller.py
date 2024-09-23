@@ -8,6 +8,7 @@ from datetime import datetime
 
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import extract, or_
+from sqlalchemy.exc import ProgrammingError, DataError, StatementError
 
 
 outing_bp = Blueprint("outing", __name__, url_prefix= "/outing")
@@ -15,42 +16,46 @@ outing_bp = Blueprint("outing", __name__, url_prefix= "/outing")
 @outing_bp.route("/create", methods= ["POST"])
 @jwt_required()
 def create_outing():
-    body_data = OutingSchema().load(request.get_json())
-    if all(body_data.get(field) for field in ["start_date", "end_date", "title"]):
-# Proceed if these 3 fields are present.
-        pass
-    else:
-        return {"Error": "Some fields are missing or empty = start_date, end_date & title must have data entered."}, 404
-         
-    outing = Outing(
-        start_date = body_data.get("start_date"),
-        end_date = body_data.get("end_date"),
-        title = body_data.get("title"),
-        description = body_data.get("description"),
-        public = body_data.get("public") 
-    )
-    stmt = db.select(Member).filter_by(member_id=get_jwt_identity())
-    member = db.session.scalar(stmt)
-    
-    if member:
-        outing.member_id = member.member_id
-        db.session.add(outing)
-        db.session.commit()
-
-        if not outing.public:
-            response = private_invite(outing.out_id, member.fam_group_id)
+    try:
+        body_data = OutingSchema().load(request.get_json())
+        if all(body_data.get(field) for field in ["start_date", "end_date", "title"]):
+    # Proceed if these 3 fields are present.
+            pass
         else:
-            response = None
+            return {"Error": "Some fields are missing or empty = start_date, end_date & title must have data entered."}, 404
+            
+        outing = Outing(
+            start_date = body_data.get("start_date"),
+            end_date = body_data.get("end_date"),
+            title = body_data.get("title"),
+            description = body_data.get("description"),
+            public = body_data.get("public") 
+        )
+        stmt = db.select(Member).filter_by(member_id=get_jwt_identity())
+        member = db.session.scalar(stmt)
+        
+        if member:
+            outing.member_id = member.member_id
+            db.session.add(outing)
+            db.session.commit()
 
-        display_response = {
-            "Created Outing": outing_schema.dump(outing)
-        }
-        if response:
-            display_response["If public is false"] = f"{response}"
+            if not outing.public:
+                response = private_invite(outing.out_id, member.fam_group_id)
+            else:
+                response = None
 
-        return display_response, 200
-    else:
-        {"Error": "You do not have the authority to create Outings"}, 401
+            display_response = {
+                "Created Outing": outing_schema.dump(outing)
+            }
+            if response:
+                display_response["If public is false"] = f"{response}"
+
+            return display_response, 200
+        else:
+            {"Error": "You do not have the authority to create Outings"}, 401
+    except (ProgrammingError, DataError, StatementError):
+        return {"Error": "Incorrect field format. Please enter correct format."}, 400
+
 
 @outing_bp.route("/", methods= ["GET"])
 def display_outings():
