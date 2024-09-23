@@ -6,6 +6,7 @@ from datetime import datetime
 
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy.exc import ProgrammingError, DataError, StatementError
+from marshmallow import ValidationError
 
 
 bill_bp = Blueprint("bill", __name__, url_prefix= "/bill")
@@ -42,7 +43,7 @@ def create_bill():
             }, 201
         else:
             return {"Error": "You do not have the authority to create Bills"}, 401
-    except (ProgrammingError, DataError, StatementError):
+    except (ProgrammingError, DataError, StatementError, ValidationError):
         return {"Error": "Incorrect field format. Please enter correct format."}, 400
 
 @bill_bp.route("/", methods= ["GET"])
@@ -88,7 +89,7 @@ def update_bill(id):
         bill = db.session.scalar(stmt2)
         
         if bill.member.fam_group_id != member.fam_group_id:
-            return {"Error": "Update of Bills not in your same family group is not allowed. "}
+            return {"Error": "Update of Bills not in your same family group is not allowed. "}, 401
 
         if bill and member:
     # Update the fields if they exist in the request data, or keep the current values
@@ -105,7 +106,7 @@ def update_bill(id):
             }, 200
         else:
             return {"Error": "This bill does not exist or you dont have authority."}, 404
-    except (ProgrammingError, DataError, StatementError):
+    except (ProgrammingError, DataError, StatementError, ValidationError):
         return {"Error": "Incorrect field format. Please enter correct format."}, 400
 
 

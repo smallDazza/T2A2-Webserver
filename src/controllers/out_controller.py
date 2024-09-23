@@ -9,6 +9,7 @@ from datetime import datetime
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import extract, or_
 from sqlalchemy.exc import ProgrammingError, DataError, StatementError
+from marshmallow import ValidationError
 
 
 outing_bp = Blueprint("outing", __name__, url_prefix= "/outing")
@@ -52,12 +53,13 @@ def create_outing():
 
             return display_response, 200
         else:
-            {"Error": "You do not have the authority to create Outings"}, 401
-    except (ProgrammingError, DataError, StatementError):
+            {"Error": "You are not a member of this application."}, 401
+    except (ProgrammingError, DataError, StatementError, ValidationError):
         return {"Error": "Incorrect field format. Please enter correct format."}, 400
 
 
 @outing_bp.route("/", methods= ["GET"])
+@jwt_required()
 def display_outings():
     try:
         body_data = request.get_json()
@@ -67,18 +69,24 @@ def display_outings():
         user_date = datetime.strptime(user_date_ent, "%Y-%m")
     except (ValueError, TypeError):
         return {"Error": f"Invalid date format entered. Please enter YYYY-MM."}, 400
-
-    stmt = db.select(Outing).where(
+    
+    stmt = db.select(Member).filter_by(member_id = get_jwt_identity())
+    member = db.session.scalar(stmt)
+    if not member:
+        return {"Error": "Invalid token or member not found."}, 404
+        
+    group_id = member.fam_group_id
+# Ensure outings are linked to members in the same family group
+# Ensure the outing belongs to a member in the family group
+    stmt2 = db.select(Outing).join(Member).where(Member.fam_group_id == group_id, Outing.member_id == Member.member_id).where(
         or_(
             (extract("year", Outing.start_date) == user_date.year) & (extract("month", Outing.start_date) == user_date.month),
             (extract("year", Outing.end_date) == user_date.year) & (extract("month", Outing.end_date) == user_date.month)
         )
     )
-    outings = db.session.scalars(stmt).all()
-    stmt2 = db.select(Invite).where(Invite.fam_grp_id == Member.fam_group_id)
-    family_grp = db.session.scalar(stmt2)
+    outings = db.session.scalars(stmt2).all()
 
-    if not outings and family_grp:
+    if not outings:
         return {"message": f"There are no family outings during the: {user_date_ent}."}, 200
     
     return {
@@ -88,28 +96,36 @@ def display_outings():
 @outing_bp.route("/update/<int:id>", methods= ["PUT", "PATCH"])
 @jwt_required()
 def update_outing(id):
-    body_data = OutingSchema().load(request.get_json(), partial=True)
-    
-    stmt = db.select(Member).filter_by(member_id=get_jwt_identity())
-    member = db.session.scalar(stmt)
-    stmt2 = db.select(Outing).filter_by(out_id = id)
-    outing = db.session.scalar(stmt2)
-
-    if outing and member:
-# Update the fields if they exist in the request data, or keep the current values
-        outing.start_date = body_data.get("start_date") or outing.start_date  
-        outing.end_date = body_data.get("end_date") or outing.end_date        
-        outing.title = body_data.get("title") or outing.title
-        outing.description = body_data.get("description") or outing.description
-        outing.public = body_data.get("public") or outing.public
-        outing.member_id = member.member_id
+    try:
+        body_data = OutingSchema().load(request.get_json(), partial=True)
         
-        db.session.commit()
-        return {
-            "Outing updated": "The outing fields have been updated."
-        }, 200
-    else:
-        return {"Error": "This outing does not exist or you dont have authority."}, 401
+        stmt = db.select(Member).filter_by(member_id=get_jwt_identity())
+        member = db.session.scalar(stmt)
+        stmt2 = db.select(Outing).filter_by(out_id = id)
+        outing = db.session.scalar(stmt2)
+
+        if not outing:
+            return {"Error": f"Outing with id: {id}, does not exist."}, 404
+        if outing.member.fam_group_id != member.fam_group_id:
+            return {"Error": "Update of Outings not in your same family group is not allowed. "}, 401
+
+        if outing and member:
+    # Update the fields if they exist in the request data, or keep the current values
+            outing.start_date = body_data.get("start_date") or outing.start_date  
+            outing.end_date = body_data.get("end_date") or outing.end_date        
+            outing.title = body_data.get("title") or outing.title
+            outing.description = body_data.get("description") or outing.description
+            outing.public = body_data.get("public") or outing.public
+            outing.member_id = member.member_id
+            
+            db.session.commit()
+            return {
+                "Outing updated": "The outing fields have been updated."
+            }, 200
+        else:
+            return {"Error": "This outing does not exist or you dont have authority."}, 401
+    except (ProgrammingError, DataError, StatementError, ValidationError):
+        return {"Error": "Incorrect field format. Please enter correct format."}, 400
 
 
 @outing_bp.route("/delete/<int:id>", methods= ["DELETE"])
@@ -119,8 +135,12 @@ def delete_bill(id):
     outing = db.session.scalar(stmt)
     stmt2 = db.select(Member).filter_by(member_id = get_jwt_identity())
     member = db.session.scalar(stmt2)
+
     if not outing:
         return {"Error": f"Outing with id: {id}, does not exist."}, 404
+    if outing.member.fam_group_id != member.fam_group_id:
+            return {"Error": "Deleting of Outings not in your same family group is not allowed. "}, 401
+    
     if member.is_admin and member:
         db.session.delete(outing)
         db.session.commit()

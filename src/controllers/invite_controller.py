@@ -6,7 +6,8 @@ from models.group import Group, GroupSchema
 from init import db
 
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, ProgrammingError, DataError, StatementError
+from marshmallow import ValidationError
 
 
 invite_bp = Blueprint("invite", __name__, url_prefix="/invite")
@@ -28,11 +29,13 @@ def public_invite():
         body_data = request.get_json()
         outing_id = body_data.get("outing_id")
         group_id = body_data.get("group_id")
-        stmt = db.select(Member).filter_by(member_id = get_jwt_identity())
-        member = db.session.scalar(stmt)
+        stmt = db.select(Outing).filter_by(out_id = outing_id)
+        outing = db.session.scalar(stmt)
+        stmt2 = db.select(Member).filter_by(member_id = get_jwt_identity())
+        member = db.session.scalar(stmt2)
 
-        if not member:
-            return {"Error": "Member not found."}, 404
+        if outing.member.fam_group_id != member.fam_group_id or outing.public == False:
+            return {"Error": "Cannot create a public invite for outings not created by members in your family group or that are private family outings."}, 401
 
         pub_invite = Invite(
             out_id = outing_id,
@@ -52,54 +55,53 @@ def public_invite():
             }, 200
         else:
             return {"Error": "You are not an admin and cannot create public invites."}, 401
-    except IntegrityError:
+    except AttributeError:
         return {"Error": "The outing_id or group_id entered do not exist."}, 404
+    except (ProgrammingError, DataError, StatementError):
+        return {"Error": "Incorrect field format. Please enter correct format."}, 400
 
-@invite_bp.route("/private", methods= ["GET"])
+@invite_bp.route("/view", methods= ["GET"])
 @jwt_required()
-def private_invites():
+def view_invites():
     stmt = db.select(Member).filter_by(member_id=get_jwt_identity())
     member = db.session.scalar(stmt)
-    stmt2 = db.select(Outing).where(Outing.public == False)
-    private = db.session.scalar(stmt2)
     stmt3 = db.select(Invite).where(Invite.fam_grp_id == member.fam_group_id)
     group_id = db.session.scalars(stmt3)
-    if member and private and group_id:
-        return {"Your private family group invites": invites_schema.dump(group_id)}, 200
+    if member and group_id:
+        return {"Your family group invites": invites_schema.dump(group_id)}, 200
     
-@invite_bp.route("/public", methods= ["GET"])
-@jwt_required()
-def public_invites():
-    stmt = db.select(Member).filter_by(member_id=get_jwt_identity())
-    member = db.session.scalar(stmt)
-    stmt2 = db.select(Outing).where(Outing.public == True)
-    public = db.session.scalar(stmt2)
-    stmt3 = db.select(Invite).where(Invite.fam_grp_id == member.fam_group_id)
-    group_id = db.session.scalars(stmt3)
-    if member and public and group_id:
-        return {"Your public family group invites": invites_schema.dump(group_id)}, 200
     
 @invite_bp.route("/response/<int:invite_id>", methods= ["PUT", "PATCH"])
 @jwt_required()
 def invite_response(invite_id):
-    body_data = InviteSchema().load(request.get_json(), partial=True)
-    
-    stmt = db.select(Member).filter_by(member_id=get_jwt_identity())
-    member = db.session.scalar(stmt)
-    stmt2 = db.select(Invite).filter_by(id = invite_id)
-    invite = db.session.scalar(stmt2)
+    try:
+        body_data = InviteSchema().load(request.get_json(), partial=True)
+        
+        stmt = db.select(Member).filter_by(member_id=get_jwt_identity())
+        member = db.session.scalar(stmt)
+        stmt2 = db.select(Invite).filter_by(id = invite_id)
+        invite = db.session.scalar(stmt2)
 
-    if member and invite:
+        if member and invite:
 # Update the fields if they exist in the request data, or keep the current values       
-        accept_invite = body_data.get("accept_invite") or accept_invite
-        response_message = body_data.get("response_message") or response_message
-
-        db.session.commit()
-        return {
-            "Invitation Response": invite_schema.dump(invite)
-        }, 200
-    else:
-        return {"Error": "No invite found or you dont have authority to respond."}, 401
+            accept_invite = invite.accept_invite
+            response_message = invite.response_message
+            if "accept_invite" in body_data:
+                accept_invite = body_data.get("accept_invite")
+            if "response_message" in body_data:
+                response_message = body_data.get("response_message")
+            
+            invite.accept_invite = accept_invite
+            invite.response_message = response_message
+        
+            db.session.commit()
+            return {
+                "Invitation Response": "Invite fields have been updated"
+            }, 200
+        else:
+            return {"Error": "No invite found or you dont have authority to respond."}, 401
+    except (ValueError, ValidationError, StatementError):
+        return {"Error": "Incorrect field format"}, 400
 
 
 

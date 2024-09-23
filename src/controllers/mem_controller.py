@@ -105,10 +105,13 @@ def update_member(id):
         stmt2 = db.select(Member).filter_by(member_id = get_jwt_identity())
         member2 = db.session.scalar(stmt2)
 # if the user with the token does not belong to the same family group
-        if not member or member2.fam_group_id != member.fam_group_id:
+        if not member:
+            return {"Error": "Invalid member token."}
+        if member2.fam_group_id != member.fam_group_id:
             return {
             "Error": f"Member with id: {id} does not exist in your family group. Update not permitted."
         }, 404
+
         if member2.is_admin:
             member.username = body_data.get("username") or member.username
             member.name = body_data.get("name") or member.name
@@ -118,13 +121,13 @@ def update_member(id):
                 member.is_admin = body_data.get("is_admin")
             if password:
                 member.password = bcrypt.generate_password_hash(password).decode("utf-8")
+
             db.session.commit()
             return member_schema.dump(member), 200
+        
         else:
             return {"Error": "You are not an admin user.Only admin users can update"}, 400
-    except IntegrityError as err:
-        if err.orig.pgcode == errorcodes.UNIQUE_VIOLATION:
-            return {"Error": "An invalid token or same username has been used."}, 400
+    
     except (ProgrammingError,TypeError, StatementError):
         return {"Error": "Invalid field format. Please re-enter in correct format"}, 400
     except ValidationError as err:
