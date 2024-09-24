@@ -63,7 +63,7 @@ def seed_tables():
             amount = 85.00,
             bill_title = "Mobile phone bill",
             description = "Jays mobile phone bill",
-            paid = False,
+            paid = True,
             member_id = members[1].member_id
         )
     ]
@@ -92,13 +92,19 @@ def seed_tables():
 
     invites = [
         Invite(
+            accept_invite = True,
+            invite_message = "Please join us on our cruise",
+            response_message = "Yes we will",
             out_id = outings[0].out_id,
             fam_grp_id = groups[0].group_id,
             member_id = members[0].member_id
         ),
         Invite(
+            accept_invite = False,
+            invite_message = "Please join us on our cruise",
+            response_message = "Sorry we cannot make it",
             out_id = outings[0].out_id,
-            fam_grp_id = groups[0].group_id,
+            fam_grp_id = groups[1].group_id,
             member_id = members[1].member_id
         )
     ]
