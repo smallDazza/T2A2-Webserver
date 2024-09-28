@@ -1,6 +1,6 @@
 # T2A2 API Webserver - Family Scheduler API
 
-### 1. The problem this app will solve:
+### R1. The problem this app will solve:
 Forgot that water bill ? or cant remember the date of that family bbq ? were you invited to your cousins birthday party ?
 
 In Australia if you are late on paying a bill, in particular a credit card or loan, this will affect your financial credit score, even if you forget. Missing just one repayment could drop your credit score by 22%. An American collections company did a survey in 2022 of more than 1100 people and found that 72% were in collections because of non-financial factors, with 32% of this group being because they forgot to pay their bills.
@@ -30,7 +30,7 @@ The second function is family members are able to create intra group outings & o
 
 A intra group member can choose which other inter groups to invite to a public outing they have created. Intra groups can view all the public outing invites they have and choose to respond to each particular invite.
 
-### 2. Task management of the SDLC:
+### R2. Task management of the SDLC:
 For the task management of this application i am using Trello to monitor and apply each task in the development stages of Backlog, In Progress, In Testing, Done & Issues / Rework. For starting the app project all tickets were created and applied to Backlog, then the first ticket of creating a ERd diagram and explanation of features was done & submitted for approval. 
 For version control and tracking of changes in the code while developing the app, I am using GitHub and have created a repository which can be located here: [T2A2 Family Scheduler API GitHub repository](https://github.com/smallDazza/T2A2-Webserver/tree/main)
  - #### Stage 1:
@@ -90,7 +90,7 @@ For version control and tracking of changes in the code while developing the app
 
 ![Stage 10](./docs/Stage%2010.png)
 
-### 3. Third Party Services
+### R3. Third Party Services
 For the development of this application the following third party services, packages or dependencies have been installed and can be referenced in the src\requirements.txt file:
 ![requirements.txt](./docs/requiremements%20txt.png)
 
@@ -114,7 +114,7 @@ Details:
  Other python modules imported and used in this app are :
  - datetime = this allows the use of a date format to be used in certain variables. Example : ` user_date = datetime.strptime(user_date_ent, "%Y-%m")`.
 
-### 4. Apps Database System
+### R4. Apps Database System
 For this app we have used the PostgreSQL open source object-relational database system. This is one of the oldest and most advanced database management systems available and because it is open source & has a large community that actively support it, this makes it very stable for all types of applications.
 
 Benefits of using PostgreSql:
@@ -144,7 +144,7 @@ Available at: https://techvify-software.com/what-is-postgresql/
 BrainerHub Solutions. 2023. PostgreSQL: A Practical Guide—Features and Advantages. [Online] 
 Avaliable at: https://www.linkedin.com/pulse/postgresql-practical-guidefeatures-advantages-brainerhub-solutions
 
-### 5. ORM used in this app
+### R5. ORM used in this app
 The object relational mapping (ORM) system used in the application is SQLAlchemy. SQLAlchemy is a python SQL toolkit library imported into this app with the purpose of converting objects in the python code language into SQL queries to work with the PostgreSQL database. The features and functionalities of SQLAlchemy are:
 - The first component is called the Core, which is a sql abstraction toolkit that provides a layer of DBAPI implementations and behaviours using sql expression language, which allows sql language expressions via python code expressions. The schema system can emit DDL statements which allows mapping from any python types to sql database types. Here is an example of Python code in the cli_controller.py file, using the SQLAlchemy variable (called 'db') for a DDL statement to create all database tables and their attributes: 
 
@@ -193,7 +193,7 @@ Available at: https://www.cdata.com/blog/what-is-sqlalchemy
 SQLAlchemy. Key Features of SQLAlchemy [Online]
 Available at: https://www.sqlalchemy.org/features.html
 
-### 6. Designed ERD Diagram
+### R6. Designed ERD Diagram
 Here is a image of the approved ERD diagram designed with a legend added for the Family Scheduler App:
 
 ![Approved ERD](./docs/Original%20T2A2%20ERD.png)
@@ -216,12 +216,187 @@ The other entities are all in the BCNF form (Boyce-Codd Normal Form ) by:
 An example of what an entity could look like in another normalisation level could be the family_member entity. This could be moved back into a 3NF form because by adding a family_group attribute (thus removing the family group entity) BUT this would make the current family_group FK key in the invite_outing table redundant and then would require this to be a family group attribute independant & stand alone. This is not a good idea and may cause issues if a group is missed or NULL from a outing invite.
 
 
-### 7. Implemented Models
-The implemented Models and their relationships since coding has begun have been doen as follows:
-In the Models folder = 5 implemnted models :
-1. group.py
-2. member.py
-3. bill.py
-4. outing.py
-5. invite.py
+### R7. Implemented Models
+The implemented Models and their relationships since coding has begun have been done as follows.
+In the Models folder = 5 implemented models :
+1. group.py - this model has a PK and an attribute (Note: during coding decided to add a constraint to this attribute of 'UNIQUE') : 
 
+![Added UNIQUE](./docs/Adjusted%20family_group.png). 
+
+Then 2 relationships with the member model and the invite model; 
+    - The interaction between the member model is via the members variable which back populates to the group variable in member.py. The cascade & passive_deletes works with 'ondelete=CASCADE' in the Member foreign key to delete all members in a group if the group is deleted. Example of the code in both group & member models : ![group model](./docs/group.py.png)
+    - The interaction between the invite model is via the invites variable which back populates to the group variable in invite.py. The cascade & passive_deletes works with 'ondelete= set null' in the Invite foreign key to set all invites to null if the group is deleted. 
+    - For both these interactions the query in the group_controller that would perform these actions is using the http request 'DELETE' : ![group_controller](./docs/group_cont.png)
+
+2. member.py - this model has a PK, FK and 6 attributes, then 3 relationships with the group model, bill model and the outing model;
+    - The group relationship is described above using the variables and also by the FK of 'fam_group_id'.
+    - The interaction between the bill model is via the bills variable which back populates to the member variable in bill.py. The cascade & passive_deletes works with 'ondelete= set null' in the Bill foreign key to set all bills to null if a member is deleted.
+    - The interaction between the outing model is via the outings variable which back populates to the member variable in outing.py. The cascade & passive_deletes works with 'ondelete= set null' in the Outing foreign key to set all outings to null if a member is deleted.
+    -For both these interactions in all 3 models the code is: ![member model](./docs/member.py.png)
+    - For these interactions the query in the member_controller that would perform these actions is using the http request 'DELETE' : ![member_controller](./docs/member_cont.png)
+
+3. bill.py - this model has a PK, FK and 5 attributes. This model only has a relationship with the member model;
+    - One part of this relationship is described above using the variables and also the FK of 'member_id.
+    - Another is in the bill_controller whenever a method of POST, GET, PUT or PATCH and DELETE is performed the member model is queried to check the token being used matches a member_id. If a match then the action can be preformed. A example of code for the method POST is: ![bill_controller](./docs/bill_cont.png)
+
+4. outing.py - this model has a PK, FK and 5 attributes. This model has 2 relationships with the member model and the invite model;
+    - The relationships with the member model are described above and also has the same relationships as the bill model functions above using the FK of 'member_id'.
+    - The interaction between the invite model is via the invites variable which back populates to the outing variable in invite.py. The cascade & passive_deletes works with 'ondelete= cascade' in the Outing foreign key to delete all invites for a outing if the Outing is deleted. Example of the code in both the outing and invite models: ![outing model](./docs/outing.py.png)
+
+5. invite.py - this model has a PK, three FK's and have added 3 attributes (added during coding after the initial ERD diagram in number 6). The adjusted ERD diagram is:
+
+![Adjusted ERD diagram](./docs/Adjusted%20T2A2%20ERD.png)
+
+    - The relationships with the member model, group model & outing model are described above and made possible by the FK's of 'member_id', 'fam_grp_id', 'out_id'.
+
+### R8. API Endpoints
+How to use the Family Schedulers API endpoints are as follows:
+- #### 1. /member/create
+    - Description: Allows a user to create themselves as a member and add to the database, allows the member to join or create a family group(see Note).
+    - HTTP Request Verb: POST
+    - Required Data: name, phone number, email, username (UNIQUE), password, family group name (UNIQUE, to create or join - see Note below).
+    - Optional Data: phone number, email, is administrator(default = False if not entered)
+    - Expected Response: HTTP status code 201 Created, a JSON response of the created data excluding the password.
+    - Authentication Methods: None
+
+
+    - Note: JSON family group name entered:
+        - if is a administrator = true, and the family group name does not exist = then this new family group will be created and added to the database by the function `def create_group(family_name):` in the group_controller.py file.
+            - if family group already exists = admin member added to family group.
+        - if is a administrator = false, then member added to the family group name entered.
+
+- #### 2. /member/login
+    - Description: Allows a member to login to the application and creates a jwt_token.
+    - HTTP Request Verb: POST
+    - Required Data: username, password
+    - Expected Response: HTTP status code 201 Created, a JSON response of username, is administrator and the jwt_token created.
+    - Authentication Methods: Username (UNIQUE), password
+
+
+- #### 3. /member/view
+    - Description: Allows a member to view all the members in their family group.
+    - HTTP Request Verb: GET
+    - Required Data: jwt_token
+    - Expected Response: HTTP status code 200 OK, a JSON response of all members in the same family group as the member with the jwt_token.
+    - Authentication Methods: jwt_token
+
+
+
+- #### 4. /member/update/<int:id>
+    - Description: Allows a administrator member to update the details of the member id entered and save to the database.
+    - HTTP Request Verb: PUT, PATCH
+    - Required Data:  member_id
+    - Optional Data: name, phone, email, is_admin, username, passsword
+    - Expected Response: HTTP status code 200 OK, a JSON response of all fields updated in the database of the member id entered.
+    - Authentication Methods: jwt_token, is_admin = true
+
+
+- #### 5. /member/delete/<int:id>
+    - Description: Allows a administrator member to delete the member from the database of the member id entered.
+    - HTTP Request Verb: DELETE
+    - Required Data: member_id
+    - Expected Response: HTTP status code 200 OK, a JSON response advising which member id has been deleted.
+    - Authentication Methods: jwt_token, is_admin = true
+
+
+- #### 6. /group/delete/<int:id>
+    - Description: Allows a administrator member to delete the family group they belong to and remove from the database.
+    - HTTP Request Verb: DELETE
+    - Required Data: family group id.
+    - Expected Response: HTTP status code 200 OK, a JSON response advising which family group id has been deleted.
+    - Authentication Methods: jwt_token, is_admin = true
+
+- #### 7. /bill/create
+    - Description: Allows a member to create a bill and add it to the database.
+    - HTTP Request Verb: POST
+    - Required Data: due date, amount, bill title
+    - Optional Data: description, is paid
+    - Expected Response: HTTP status code 201 Created, a JSON response of the bill data created.
+    - Authentication Methods: jwt_token
+
+
+- #### 8. /bill/
+    - Description: Allows a member to view all the bills entered by family members in the same family group and where the due date is past the date entered.
+    - HTTP Request Verb: GET
+    - Required Data: date
+    - Expected Response: HTTP status code 200 OK, a JSON response of a list of the family bills where a due date is past the date entered.
+    - Authentication Methods: jwt_token
+
+
+- #### 9. /bill/update/<int:id>
+    - Description: Allows a member to update bill details of the bill id entered (only bills entered by same family group members), and save to the database.
+    - HTTP Request Verb: PUT, PATCH
+    - Required Data: bill id
+    - Optional Data: due date, amount, bill title, description, is paid.
+    - Expected Response: HTTP status code 200 OK, a JSON response advising the bill fields have been updated of the bill id entered.
+    - Authentication Methods: jwt_token
+
+
+- #### 10. /bill/delete/<int:id>
+    - Description: Allows a administrator member to delete a bill that has the bill id entered and was entered by a same family group member, then remove from the database.
+    - HTTP Request Verb: DELETE
+    - Required Data: bill id
+    - Expected Response: HTTP status code 200 OK, a JSON response advising the bill with the bill id entered, has been deleted.
+    - Authentication Methods: jwt_token
+
+
+- #### 11. /outing/create
+    - Description: Allows a member to create a private or public outing and save to the database.
+    - HTTP Request Verb: POST
+    - Required Data: start date, end date, title
+    - Optional Data: description, public (default = False if not entered - see Note) 
+    - Expected Response: HTTP status code 201 Created, a JSON response advising the outing created and the fields added to the database.
+    - Authentication Methods: jwt_token
+
+
+    - Note: if public = False then the function `def private_invite(outing_id, group_id):` in the invite_controller will be called & create a private invite for the outing created
+
+
+- #### 12. /outing/
+    - Description: Allows a member to view all the outings entered by family members in the same family group and where the start or end dates are within the Month & Year entered.
+    - HTTP Request Verb: GET
+    - Required Data: date in YYYY-MM format
+    - Expected Response: HTTP status code 200 OK, a JSON response of a list of the family outings & invites to those outings, where the start or end dates are in the Month & Year entered.
+    - Authentication Methods: jwt_token
+
+
+- #### 13. /outing/update/<int:id>
+    - Description: Allows a member to update outing details of the outing id entered (only outings entered by same family group members), and save to the database.
+    - HTTP Request Verb: PUT, PATCH
+    - Required Data: outing id
+    - Optional Data: start date, end date, title, description, public.
+    - Expected Response: HTTP status code 200 OK, a JSON response advising the outing fields have been updated of the outing id entered.
+    - Authentication Methods: jwt_token
+
+
+- #### 14. /outing/delete/<int:id>
+    - Description: Allows a administrator member to delete a outing that has the outing id entered and was entered by a same family group member, then remove from the database.
+    - HTTP Request Verb: DELETE
+    - Required Data: outing id
+    - Expected Response: HTTP status code 200 OK, a JSON response advising the outiing with the outing id entered, has been deleted.
+    - Authentication Methods: jwt_token
+
+
+- #### 15. /invite/public
+    - Description: Allows a member to create a public invite to a public outing and save to the database.
+    - HTTP Request Verb: POST
+    - Required Data: outing id, group id, 
+    - Optional Data: invite message
+    - Expected Response: HTTP status code 201 Created, a JSON response advising the public invite created and the fields saved to the database.
+    - Authentication Methods: jwt_token
+
+
+- #### 16. /invite/view
+    - Description: Allows a member to view all the invites to outings for their family group.
+    - HTTP Request Verb: GET
+    - Required Data: 
+    - Expected Response: HTTP status code 200 OK, a JSON response of a list of all the invites that belong to the their family group id .
+    - Authentication Methods: jwt_token
+
+
+- #### 17. /invite/response/<int:invite_id>
+    - Description: Allows a member to respond to a invite to a outing their family group has been invited to.
+    - HTTP Request Verb: PUT, PATCH
+    - Required Data: accept invite, response message
+    - Expected Response: HTTP status code 200 OK, a JSON response advisng the invite fields have been updated and added to the database.
+    - Authentication Methods: jwt_token

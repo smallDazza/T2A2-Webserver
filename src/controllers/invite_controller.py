@@ -52,7 +52,7 @@ def public_invite():
                     "The outing id": pub_invite.out_id,
                     "Group id to invite": pub_invite.fam_grp_id,
                     "Your message": pub_invite.invite_message }
-            }, 200
+            }, 201
         else:
             return {"Error": "You are not an admin and cannot create public invites."}, 401
     except AttributeError:

@@ -51,7 +51,7 @@ def create_outing():
             if response:
                 display_response["If public is false"] = f"{response}"
 
-            return display_response, 200
+            return display_response, 201
         else:
             {"Error": "You are not a member of this application."}, 401
     except (ProgrammingError, DataError, StatementError, ValidationError):
