@@ -30,7 +30,7 @@ class InviteSchema(ma.Schema):
 
 
     class Meta:
-        fields = ("id", "accept_invite", "invite_message", "response_message", "group", "outing")
+        fields = ("id", "accept_invite", "invite_message", "response_message","member", "group", "outing")
 
 invites_schema = InviteSchema(many=True)
 

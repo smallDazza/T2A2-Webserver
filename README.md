@@ -228,7 +228,7 @@ Then 2 relationships with the member model and the invite model;
     - The interaction between the invite model is via the invites variable which back populates to the group variable in invite.py. The cascade & passive_deletes works with 'ondelete= set null' in the Invite foreign key to set all invites to null if the group is deleted. 
     - For both these interactions the query in the group_controller that would perform these actions is using the http request 'DELETE' : ![group_controller](./docs/group_cont.png)
 
-2. member.py - this model has a PK, FK and 6 attributes, then 3 relationships with the group model, bill model and the outing model;
+2. member.py - this model has a PK, FK and 6 attributes, then 3 relationships with the group model, bill model and the outing model. Because phone numbers and formats written vary greatly world wide, it was decided to change the format of phone_number (added during coding after the initial ERD diagram in number 6). The adjusted ERD family_member entity is: ![Adjusted ERD 2](./docs/Adjusted%20T2A2%20ERD2.png) 
     - The group relationship is described above using the variables and also by the FK of 'fam_group_id'.
     - The interaction between the bill model is via the bills variable which back populates to the member variable in bill.py. The cascade & passive_deletes works with 'ondelete= set null' in the Bill foreign key to set all bills to null if a member is deleted.
     - The interaction between the outing model is via the outings variable which back populates to the member variable in outing.py. The cascade & passive_deletes works with 'ondelete= set null' in the Outing foreign key to set all outings to null if a member is deleted.
@@ -243,7 +243,7 @@ Then 2 relationships with the member model and the invite model;
     - The relationships with the member model are described above and also has the same relationships as the bill model functions above using the FK of 'member_id'.
     - The interaction between the invite model is via the invites variable which back populates to the outing variable in invite.py. The cascade & passive_deletes works with 'ondelete= cascade' in the Outing foreign key to delete all invites for a outing if the Outing is deleted. Example of the code in both the outing and invite models: ![outing model](./docs/outing.py.png)
 
-5. invite.py - this model has a PK, three FK's and have added 3 attributes (added during coding after the initial ERD diagram in number 6). The adjusted ERD diagram is:
+5. invite.py - this model has a PK, three FK's and have added 3 attributes (added during coding after the initial ERD diagram in number 6). The adjusted ERD invite_outing entity is:
 
 ![Adjusted ERD diagram](./docs/Adjusted%20T2A2%20ERD.png)
 
@@ -259,6 +259,7 @@ How to use the Family Schedulers API endpoints are as follows:
     - Expected Response: HTTP status code 201 Created, a JSON response of the created data excluding the password.
     - Authentication Methods: None
 
+1[member create](./docs/member-create.png)
 
     - Note: JSON family group name entered:
         - if is a administrator = true, and the family group name does not exist = then this new family group will be created and added to the database by the function `def create_group(family_name):` in the group_controller.py file.
@@ -272,6 +273,7 @@ How to use the Family Schedulers API endpoints are as follows:
     - Expected Response: HTTP status code 201 Created, a JSON response of username, is administrator and the jwt_token created.
     - Authentication Methods: Username (UNIQUE), password
 
+![member login](./docs/member-login.png)
 
 - #### 3. /member/view
     - Description: Allows a member to view all the members in their family group.
@@ -280,9 +282,9 @@ How to use the Family Schedulers API endpoints are as follows:
     - Expected Response: HTTP status code 200 OK, a JSON response of all members in the same family group as the member with the jwt_token.
     - Authentication Methods: jwt_token
 
+![member view](./docs/member-view.png)
 
-
-- #### 4. /member/update/<int:id>
+- #### 4. /member/update/id
     - Description: Allows a administrator member to update the details of the member id entered and save to the database.
     - HTTP Request Verb: PUT, PATCH
     - Required Data:  member_id
@@ -290,21 +292,25 @@ How to use the Family Schedulers API endpoints are as follows:
     - Expected Response: HTTP status code 200 OK, a JSON response of all fields updated in the database of the member id entered.
     - Authentication Methods: jwt_token, is_admin = true
 
+![member update](./docs/member-update.png)
 
-- #### 5. /member/delete/<int:id>
+- #### 5. /member/delete/id
     - Description: Allows a administrator member to delete the member from the database of the member id entered.
     - HTTP Request Verb: DELETE
     - Required Data: member_id
     - Expected Response: HTTP status code 200 OK, a JSON response advising which member id has been deleted.
     - Authentication Methods: jwt_token, is_admin = true
 
+![member delete](./docs/member-delete.png)
 
-- #### 6. /group/delete/<int:id>
+- #### 6. /group/delete/id
     - Description: Allows a administrator member to delete the family group they belong to and remove from the database.
     - HTTP Request Verb: DELETE
     - Required Data: family group id.
     - Expected Response: HTTP status code 200 OK, a JSON response advising which family group id has been deleted.
     - Authentication Methods: jwt_token, is_admin = true
+
+![]
 
 - #### 7. /bill/create
     - Description: Allows a member to create a bill and add it to the database.
@@ -314,6 +320,7 @@ How to use the Family Schedulers API endpoints are as follows:
     - Expected Response: HTTP status code 201 Created, a JSON response of the bill data created.
     - Authentication Methods: jwt_token
 
+![bill create](./docs/bill-create.png)
 
 - #### 8. /bill/
     - Description: Allows a member to view all the bills entered by family members in the same family group and where the due date is past the date entered.
@@ -322,8 +329,9 @@ How to use the Family Schedulers API endpoints are as follows:
     - Expected Response: HTTP status code 200 OK, a JSON response of a list of the family bills where a due date is past the date entered.
     - Authentication Methods: jwt_token
 
+![bill view](./docs/bill-view.png)
 
-- #### 9. /bill/update/<int:id>
+- #### 9. /bill/update/id
     - Description: Allows a member to update bill details of the bill id entered (only bills entered by same family group members), and save to the database.
     - HTTP Request Verb: PUT, PATCH
     - Required Data: bill id
@@ -331,14 +339,16 @@ How to use the Family Schedulers API endpoints are as follows:
     - Expected Response: HTTP status code 200 OK, a JSON response advising the bill fields have been updated of the bill id entered.
     - Authentication Methods: jwt_token
 
+![bill update](./docs/bill-update.png)
 
-- #### 10. /bill/delete/<int:id>
+- #### 10. /bill/delete/id
     - Description: Allows a administrator member to delete a bill that has the bill id entered and was entered by a same family group member, then remove from the database.
     - HTTP Request Verb: DELETE
     - Required Data: bill id
     - Expected Response: HTTP status code 200 OK, a JSON response advising the bill with the bill id entered, has been deleted.
     - Authentication Methods: jwt_token
 
+![bill delete](./docs/bill-delete.png)
 
 - #### 11. /outing/create
     - Description: Allows a member to create a private or public outing and save to the database.
@@ -348,9 +358,11 @@ How to use the Family Schedulers API endpoints are as follows:
     - Expected Response: HTTP status code 201 Created, a JSON response advising the outing created and the fields added to the database.
     - Authentication Methods: jwt_token
 
+![public outing](./docs/public%20outing-create.png)
 
     - Note: if public = False then the function `def private_invite(outing_id, group_id):` in the invite_controller will be called & create a private invite for the outing created
 
+![private outing](./docs/private%20outing-create.png)
 
 - #### 12. /outing/
     - Description: Allows a member to view all the outings entered by family members in the same family group and where the start or end dates are within the Month & Year entered.
@@ -359,8 +371,9 @@ How to use the Family Schedulers API endpoints are as follows:
     - Expected Response: HTTP status code 200 OK, a JSON response of a list of the family outings & invites to those outings, where the start or end dates are in the Month & Year entered.
     - Authentication Methods: jwt_token
 
+![outing view](./docs/outing-view.png)
 
-- #### 13. /outing/update/<int:id>
+- #### 13. /outing/update/id
     - Description: Allows a member to update outing details of the outing id entered (only outings entered by same family group members), and save to the database.
     - HTTP Request Verb: PUT, PATCH
     - Required Data: outing id
@@ -369,7 +382,7 @@ How to use the Family Schedulers API endpoints are as follows:
     - Authentication Methods: jwt_token
 
 
-- #### 14. /outing/delete/<int:id>
+- #### 14. /outing/delete/id
     - Description: Allows a administrator member to delete a outing that has the outing id entered and was entered by a same family group member, then remove from the database.
     - HTTP Request Verb: DELETE
     - Required Data: outing id
@@ -394,7 +407,7 @@ How to use the Family Schedulers API endpoints are as follows:
     - Authentication Methods: jwt_token
 
 
-- #### 17. /invite/response/<int:invite_id>
+- #### 17. /invite/response/invite_id
     - Description: Allows a member to respond to a invite to a outing their family group has been invited to.
     - HTTP Request Verb: PUT, PATCH
     - Required Data: accept invite, response message

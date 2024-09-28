@@ -7,7 +7,7 @@ class Member(db.Model):
 
     member_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    phone_number = db.Column(db.Integer)
+    phone_number = db.Column(db.String(20))
     email = db.Column(db.String(50))
     is_admin = db.Column(db.Boolean, default=False)
     username = db.Column(db.String(20), nullable=False, unique=True)
