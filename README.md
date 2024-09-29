@@ -290,6 +290,10 @@ How to use the Family Schedulers API endpoints are as follows:
 
 ![create member error handling](./docs/member_error_handling.png)
 
+        5. (During testing/coding) = decided to add code to check for the password length. If not between 8-12 characters = display error to advise member to change their password:
+
+![check password create](./docs/member_password_length.png)
+
 - #### 2. /member/login
     - Description: Allows a member to login to the application and creates a jwt_token.
     - HTTP Request Verb: POST
@@ -337,6 +341,10 @@ How to use the Family Schedulers API endpoints are as follows:
         5. Incorrect fields entered.
 
 ![member error 5](./docs/member-error_handling4.png)
+
+        6. (During testing/coding) = decided to add code to check for the password length. If not between 8-12 characters = display error to advise member to change their password:
+
+![check password update](./docs/member_update_check_password.png)
 
 - #### 5. /member/delete/id
     - Description: Allows a administrator member to delete the member from the database of the member id entered.

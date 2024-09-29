@@ -25,6 +25,10 @@ def create_member():
             pass
         else:
             return {"Error": "Some fields are missing or empty = name, username, password & family group name must have data entered."}, 404
+        
+# check if the password length is between 8 and 12 characters
+        if not (8 <= len(password) <= 12):
+            return {"Error": "The password must be between 8 and 12 characters long. Please re-enter a new password."}, 400
 # checking if the member is going to be a administrator. If = true, then calls the create group function to create the group name entered.
         admin = body_data.get("is_admin")
         if admin:
@@ -116,6 +120,9 @@ def update_member(id):
             return {
             "Error": f"Member with id: {id} does not exist in your family group. Update not permitted."
         }, 404
+# check if the password length is between 8 and 12 characters
+        if not (8 <= len(password) <= 12):
+            return {"Error": "The password must be between 8 and 12 characters long. Please re-enter a new password."}, 400
 # if the member is a administrator then,
 # update the fields present in the json request or leave as current:
         if member2.is_admin:
@@ -139,7 +146,7 @@ def update_member(id):
     except ValidationError as err:
         return {"Error": f"These fields do not exist: {err}, please remove."}, 400
     except AttributeError:
-        return {"Error": "Invalid member token."},404
+        return {"Error": "Invalid member token or id entered."},404
 # this is the route location and method to be used to delete a member (must have a token):   
 @member_bp.route("/delete/<int:id>", methods= ["DELETE"])
 @jwt_required()
