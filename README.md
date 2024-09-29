@@ -259,12 +259,22 @@ How to use the Family Schedulers API endpoints are as follows:
     - Expected Response: HTTP status code 201 Created, a JSON response of the created data excluding the password.
     - Authentication Methods: None
 
-1[member create](./docs/member-create.png)
+![member create](./docs/member-create.png)
 
     - Note: JSON family group name entered:
         - if is a administrator = true, and the family group name does not exist = then this new family group will be created and added to the database by the function `def create_group(family_name):` in the group_controller.py file.
             - if family group already exists = admin member added to family group.
         - if is a administrator = false, then member added to the family group name entered.
+
+![auto create group](./docs/auto_create-group.png)
+
+    - Error handling: 
+        1. Family group entered does not exist.
+        2. Using incorrect field formats.
+        3. Missing or blank fields.
+        4. Username already exists.
+
+![create member error handling](./docs/member_error_handling.png)
 
 - #### 2. /member/login
     - Description: Allows a member to login to the application and creates a jwt_token.
@@ -275,6 +285,12 @@ How to use the Family Schedulers API endpoints are as follows:
 
 ![member login](./docs/member-login.png)
 
+    - Error Handling:
+        1. The username or password are incorrect.
+        2. Invalid field format.
+
+![member error 2](./docs/member_error_handling2.png)
+
 - #### 3. /member/view
     - Description: Allows a member to view all the members in their family group.
     - HTTP Request Verb: GET
@@ -283,6 +299,11 @@ How to use the Family Schedulers API endpoints are as follows:
     - Authentication Methods: jwt_token
 
 ![member view](./docs/member-view.png)
+
+    -Error handling:
+        1. token used from a deleted member.
+
+![member error 3](./docs/member_error_handling3.png)
 
 - #### 4. /member/update/id
     - Description: Allows a administrator member to update the details of the member id entered and save to the database.
@@ -294,6 +315,15 @@ How to use the Family Schedulers API endpoints are as follows:
 
 ![member update](./docs/member-update.png)
 
+    -Error Handling:
+        1. Member id rtying to update does not belong to your familiy group.
+        2. Token used from a deleted member.
+        3. Not an admin member, so cannot update.
+        4. Invalid field format.
+        5. incorrect fields entered.
+
+![member error 5](./docs/member-error_handling4.png)
+
 - #### 5. /member/delete/id
     - Description: Allows a administrator member to delete the member from the database of the member id entered.
     - HTTP Request Verb: DELETE
@@ -302,6 +332,13 @@ How to use the Family Schedulers API endpoints are as follows:
     - Authentication Methods: jwt_token, is_admin = true
 
 ![member delete](./docs/member-delete.png)
+
+    - Error Handling:
+        1. Member id trying to delete does not exist.
+        2. Member id trying to delete does not belong to your family group.
+        3. Not and administrator, so cannot delete.
+
+![member error 5](./docs/member-error_handling5.png)
 
 - #### 6. /group/delete/id
     - Description: Allows a administrator member to delete the family group they belong to and remove from the database.
@@ -322,6 +359,12 @@ How to use the Family Schedulers API endpoints are as follows:
 
 ![bill create](./docs/bill-create.png)
 
+    - Error Handling:
+        1. Incorrect field format.
+        2. Missing or empty fields.
+
+![bill error 1](./docs/bill_error_handling1.png)
+
 - #### 8. /bill/
     - Description: Allows a member to view all the bills entered by family members in the same family group and where the due date is past the date entered.
     - HTTP Request Verb: GET
@@ -330,6 +373,13 @@ How to use the Family Schedulers API endpoints are as follows:
     - Authentication Methods: jwt_token
 
 ![bill view](./docs/bill-view.png)
+
+    - Error Handling:
+        1. Blank date.
+        2. Invalid date format.
+        3. Invalid token or member.
+
+![bill error 2](./docs/bill_error_handling2.png)
 
 - #### 9. /bill/update/id
     - Description: Allows a member to update bill details of the bill id entered (only bills entered by same family group members), and save to the database.
@@ -341,6 +391,13 @@ How to use the Family Schedulers API endpoints are as follows:
 
 ![bill update](./docs/bill-update.png)
 
+    - Error Handling:
+        1. Incorrect field format.
+        2. Update of bills not in same family group.
+        3. Bill does not exist
+
+![bill error 3](./docs/bill_error_handling3.png)
+
 - #### 10. /bill/delete/id
     - Description: Allows a administrator member to delete a bill that has the bill id entered and was entered by a same family group member, then remove from the database.
     - HTTP Request Verb: DELETE
@@ -349,6 +406,13 @@ How to use the Family Schedulers API endpoints are as follows:
     - Authentication Methods: jwt_token
 
 ![bill delete](./docs/bill-delete.png)
+
+    -Error Handling:
+        1. Not an admin member
+        2. Cannot delete bills not in same family group.
+        3. Bill id does not exist.
+
+![bill error 4](./docs/bill_error_handling4.png)
 
 - #### 11. /outing/create
     - Description: Allows a member to create a private or public outing and save to the database.
@@ -364,6 +428,13 @@ How to use the Family Schedulers API endpoints are as follows:
 
 ![private outing](./docs/private%20outing-create.png)
 
+    - Error Handling:
+        1. Empty fields entered.
+        2. Invalid token.
+        3. Invalid fielf format entered.
+
+![outing error 1](./docs/outing_error_handling1.png)
+
 - #### 12. /outing/
     - Description: Allows a member to view all the outings entered by family members in the same family group and where the start or end dates are within the Month & Year entered.
     - HTTP Request Verb: GET
@@ -373,6 +444,13 @@ How to use the Family Schedulers API endpoints are as follows:
 
 ![outing view](./docs/outing-view.png)
 
+    - Error Handling:
+        1. Invalid token or member.
+        2. Invaild date format.
+        3. If field is blank.
+
+![outing error 2](./docs/outing_error_handling2.png)
+
 - #### 13. /outing/update/id
     - Description: Allows a member to update outing details of the outing id entered (only outings entered by same family group members), and save to the database.
     - HTTP Request Verb: PUT, PATCH
@@ -381,6 +459,15 @@ How to use the Family Schedulers API endpoints are as follows:
     - Expected Response: HTTP status code 200 OK, a JSON response advising the outing fields have been updated of the outing id entered.
     - Authentication Methods: jwt_token
 
+![outing update](./docs/outing-update.png)
+
+    - Error Handling
+        1. Outning id does not exist.
+        2. Incorrect field format.
+        3. Update of outings not in same family group not allowed.
+        4. Invalid token.
+
+![outing error 3](./docs/outing_error_handling3.png)
 
 - #### 14. /outing/delete/id
     - Description: Allows a administrator member to delete a outing that has the outing id entered and was entered by a same family group member, then remove from the database.
@@ -389,15 +476,32 @@ How to use the Family Schedulers API endpoints are as follows:
     - Expected Response: HTTP status code 200 OK, a JSON response advising the outiing with the outing id entered, has been deleted.
     - Authentication Methods: jwt_token
 
+![outing delete](./docs/outing-delete.png)
+
+    - Error Handling:
+        1. Outing id does not exist
+        2. Deleting of outings not in sam family group not allowed.
+        3. Not an admin member.
+
+![outing error 4](./docs/outing_error_handling4.png)
 
 - #### 15. /invite/public
-    - Description: Allows a member to create a public invite to a public outing and save to the database.
+    - Description: Allows a admin member to create a public invite to a public outing and save to the database.
     - HTTP Request Verb: POST
     - Required Data: outing id, group id, 
     - Optional Data: invite message
     - Expected Response: HTTP status code 201 Created, a JSON response advising the public invite created and the fields saved to the database.
     - Authentication Methods: jwt_token
 
+![invite public](./docs/invite-public.png)
+
+    - Error Handling:
+        1. Outing id or grou id do not exist.
+        2. Incorrect field format.
+        3. Cannot create public invite for outings not done by family group mamber or that are private outings.
+        4. Not an admin, so cannot create a public invite.
+
+![invite error 1](./docs/invite_error_handling1.png)
 
 - #### 16. /invite/view
     - Description: Allows a member to view all the invites to outings for their family group.
@@ -406,6 +510,13 @@ How to use the Family Schedulers API endpoints are as follows:
     - Expected Response: HTTP status code 200 OK, a JSON response of a list of all the invites that belong to the their family group id .
     - Authentication Methods: jwt_token
 
+![invite view](./docs/invite-view.png)
+![No invites](./docs/invite-view_none.png)
+
+    - Error Handling:
+        1. Invalid token used.
+
+![invite view 1](./docs/invite_error_handling2.png)
 
 - #### 17. /invite/response/invite_id
     - Description: Allows a member to respond to a invite to a outing their family group has been invited to.
@@ -413,3 +524,13 @@ How to use the Family Schedulers API endpoints are as follows:
     - Required Data: accept invite, response message
     - Expected Response: HTTP status code 200 OK, a JSON response advisng the invite fields have been updated and added to the database.
     - Authentication Methods: jwt_token
+
+![invite response](./docs/invite-response.png)
+
+    - Error Handling:
+        1. Invite id does not belong to same family group.
+        2. Incorrect field format.
+        3. Invalid token.
+
+![invite error 3](./docs/invite_error_handling3.png)
+

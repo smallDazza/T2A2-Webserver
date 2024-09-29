@@ -62,7 +62,7 @@ def display_bills():
             return {"Error": "Must enter a date , cannot be blank."}, 400
         user_date = datetime.strptime(user_date, "%Y-%m-%d")
     except (ValueError, TypeError):
-        return {"Error": f"Invalid date format entered. Please enter YYYY-MM-DD."}
+        return {"Error": f"Invalid date format entered. Please enter YYYY-MM-DD."},400
 
     stmt2 = (
         db.select(Bill).join(Member).where(Member.fam_group_id == group_id, Bill.due_date >= user_date)
@@ -91,21 +91,21 @@ def update_bill(id):
         if bill.member.fam_group_id != member.fam_group_id:
             return {"Error": "Update of Bills not in your same family group is not allowed. "}, 401
 
-        if bill and member:
     # Update the fields if they exist in the request data, or keep the current values
-            bill.due_date = body_data.get("due_date") or bill.due_date  
-            bill.amount = body_data.get("amount") or bill.amount       
-            bill.bill_title = body_data.get("bill_title") or bill.bill_title
-            bill.description = body_data.get("description") or bill.description
-            bill.paid = body_data.get("paid") or bill.paid
-            bill.member_id = member.member_id
+        bill.due_date = body_data.get("due_date") or bill.due_date  
+        bill.amount = body_data.get("amount") or bill.amount       
+        bill.bill_title = body_data.get("bill_title") or bill.bill_title
+        bill.description = body_data.get("description") or bill.description
+        bill.paid = body_data.get("paid") or bill.paid
+        bill.member_id = member.member_id
             
-            db.session.commit()
-            return {
+        db.session.commit()
+        return {
                 "Bill updated": f"The bill fields of bill id: {id} -have been updated."
             }, 200
-        else:
-            return {"Error": "This bill does not exist or you dont have authority."}, 404
+
+    except AttributeError:
+        return {"Error": "This bill does not exist or invalid token."}, 404
     except (ProgrammingError, DataError, StatementError, ValidationError):
         return {"Error": "Incorrect field format. Please enter correct format."}, 400
 
@@ -121,7 +121,7 @@ def delete_bill(id):
     if not bill:
         return {"Error": f"Bill with id: {id}, does not exist."}, 404
     if bill.member.fam_group_id != member.fam_group_id:
-            return {"Error": "Deletion of Bills not in your same family group is not allowed. "}
+            return {"Error": "Deletion of Bills not in your same family group is not allowed."},400
     
     if member.is_admin and member:
         db.session.delete(bill)

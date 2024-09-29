@@ -63,12 +63,18 @@ def public_invite():
 @invite_bp.route("/view", methods= ["GET"])
 @jwt_required()
 def view_invites():
-    stmt = db.select(Member).filter_by(member_id=get_jwt_identity())
-    member = db.session.scalar(stmt)
-    stmt3 = db.select(Invite).where(Invite.fam_grp_id == member.fam_group_id)
-    group_id = db.session.scalars(stmt3)
-    if member and group_id:
-        return {"Your family group invites": invites_schema.dump(group_id)}, 200
+        try:
+            stmt = db.select(Member).filter_by(member_id=get_jwt_identity())
+            member = db.session.scalar(stmt)
+            group_id = member.fam_group_id
+            stmt3 = db.select(Invite).where(Invite.fam_grp_id == group_id)
+            invites = db.session.scalars(stmt3).all()
+            if member and invites:
+                return {"Your family group invites": invites_schema.dump(invites)}, 200
+            else:
+                return {"No Invites Found": "There are no invites found for your family group"}, 200
+        except AttributeError:
+            return {"Error": "Invalid token. Cannot view invites"}, 400
     
     
 @invite_bp.route("/response/<int:invite_id>", methods= ["PUT", "PATCH"])
@@ -82,24 +88,29 @@ def invite_response(invite_id):
         stmt2 = db.select(Invite).filter_by(id = invite_id)
         invite = db.session.scalar(stmt2)
 
-        if member and invite:
-# Update the fields if they exist in the request data, or keep the current values       
-            accept_invite = invite.accept_invite
-            response_message = invite.response_message
-            if "accept_invite" in body_data:
-                accept_invite = body_data.get("accept_invite")
-            if "response_message" in body_data:
-                response_message = body_data.get("response_message")
-            
-            invite.accept_invite = accept_invite
-            invite.response_message = response_message
+        if member.fam_group_id == invite.fam_grp_id:
+            pass
+        else:
+            return {"Error": "The invite id does not belong to your family group. No response allowed."},401
+
         
-            db.session.commit()
-            return {
+# Update the fields if they exist in the request data, or keep the current values       
+        accept_invite = invite.accept_invite
+        response_message = invite.response_message
+        if "accept_invite" in body_data:
+            accept_invite = body_data.get("accept_invite")
+        if "response_message" in body_data:
+            response_message = body_data.get("response_message")
+            
+        invite.accept_invite = accept_invite
+        invite.response_message = response_message
+        
+        db.session.commit()
+        return {
                 "Invitation Response": "Invite fields have been updated"
             }, 200
-        else:
-            return {"Error": "No invite found or you dont have authority to respond."}, 401
+    except AttributeError:
+            return {"Error": "Invalid token. No resonse is allowed."}, 401
     except (ValueError, ValidationError, StatementError):
         return {"Error": "Incorrect field format"}, 400
 

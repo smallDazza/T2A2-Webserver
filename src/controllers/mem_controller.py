@@ -82,7 +82,7 @@ def view_members():
     stmt = db.select(Member).filter_by(member_id = get_jwt_identity())
     member = db.session.scalar(stmt)
     if not member:
-        return {"Error": "Invalid member token."}
+        return {"Error": "Invalid member token."},400
     
     stmt2 = db.select(Member).where(Member.fam_group_id == member.fam_group_id)
     members = db.session.scalars(stmt2).all()
@@ -92,7 +92,7 @@ def view_members():
             "The family members in your family group are": members_schema.dump(members)
         }, 200
     else:
-        return {"Error": "There are no other members in your family group."}, 404
+        return {"Error": "There are no members in your family group."}, 404
 
 @member_bp.route("/update/<int:id>", methods= ["PUT", "PATCH"])
 @jwt_required()
@@ -104,9 +104,7 @@ def update_member(id):
         member = db.session.scalar(stmt)
         stmt2 = db.select(Member).filter_by(member_id = get_jwt_identity())
         member2 = db.session.scalar(stmt2)
-# if the user with the token does not belong to the same family group
-        if not member:
-            return {"Error": "Invalid member token."}
+# if the user with the token does not belong to the same family group         
         if member2.fam_group_id != member.fam_group_id:
             return {
             "Error": f"Member with id: {id} does not exist in your family group. Update not permitted."
@@ -132,6 +130,8 @@ def update_member(id):
         return {"Error": "Invalid field format. Please re-enter in correct format"}, 400
     except ValidationError as err:
         return {"Error": f"These fields do not exist: {err}, please remove."}, 400
+    except AttributeError:
+        return {"Error": "Invalid member token."},404
         
 @member_bp.route("/delete/<int:id>", methods= ["DELETE"])
 @jwt_required()

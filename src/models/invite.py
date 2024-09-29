@@ -11,7 +11,7 @@ class Invite(db.Model):
     response_message = db.Column(db.String(100))
     out_id = db.Column(db.Integer, db.ForeignKey("outing.out_id", ondelete= "cascade"), nullable=False)
 # the addition here of 'ondelete="set null" means if a group from the family_group table is deleted all associated invite records to that group will be set to null.
-    fam_grp_id = db.Column(db.Integer, db.ForeignKey("family_group.group_id", ondelete= "set null"), nullable=False)
+    fam_grp_id = db.Column(db.Integer, db.ForeignKey("family_group.group_id", ondelete= "set null"), nullable=True)
 # the addition here of 'ondelete="set null" means if a member from the family_member table is deleted all associated invite records to that member will be set to null.
     member_id = db.Column(db.Integer, db.ForeignKey("family_member.member_id", ondelete= "set null"), nullable=True)
 
@@ -24,9 +24,9 @@ class Invite(db.Model):
 
 
 class InviteSchema(ma.Schema):
-    member = fields.Nested("MemberSchema", exclude= ["invites"])
-    group = fields.Nested("GroupSchema", exclude= ["invites"])
-    outing = fields.Nested("OutingSchema", exclude= ["invites"])
+    member = fields.Nested("MemberSchema", only= ["member_id", "name"])
+    group = fields.Nested("GroupSchema", exclude= ["invites", "members"])
+    outing = fields.Nested("OutingSchema", exclude= ["invites", "member"])
 
 
     class Meta:

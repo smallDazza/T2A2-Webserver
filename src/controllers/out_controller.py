@@ -35,25 +35,26 @@ def create_outing():
         stmt = db.select(Member).filter_by(member_id=get_jwt_identity())
         member = db.session.scalar(stmt)
         
-        if member:
-            outing.member_id = member.member_id
-            db.session.add(outing)
-            db.session.commit()
+        if not member:
+            return {"Error": "Your token is invalid and not a member of this application."}, 401
+        
+        outing.member_id = member.member_id
+        db.session.add(outing)
+        db.session.commit()
 
-            if not outing.public:
-                response = private_invite(outing.out_id, member.fam_group_id)
-            else:
-                response = None
+        if not outing.public:
+            response = private_invite(outing.out_id, member.fam_group_id)
+        else:
+            response = None
 
-            display_response = {
+        display_response = {
                 "Created Outing": outing_schema.dump(outing)
             }
-            if response:
-                display_response["If public is false"] = f"{response}"
+        if response:
+            display_response["If public is false"] = f"{response}"
 
-            return display_response, 201
-        else:
-            {"Error": "You are not a member of this application."}, 401
+        return display_response, 201
+            
     except (ProgrammingError, DataError, StatementError, ValidationError):
         return {"Error": "Incorrect field format. Please enter correct format."}, 400
 
@@ -106,24 +107,25 @@ def update_outing(id):
 
         if not outing:
             return {"Error": f"Outing with id: {id}, does not exist."}, 404
+        if not member:
+            return {"Error": "Invalid token used. Update not allowed."}, 401 
         if outing.member.fam_group_id != member.fam_group_id:
             return {"Error": "Update of Outings not in your same family group is not allowed. "}, 401
 
-        if outing and member:
+        
     # Update the fields if they exist in the request data, or keep the current values
-            outing.start_date = body_data.get("start_date") or outing.start_date  
-            outing.end_date = body_data.get("end_date") or outing.end_date        
-            outing.title = body_data.get("title") or outing.title
-            outing.description = body_data.get("description") or outing.description
-            outing.public = body_data.get("public") or outing.public
-            outing.member_id = member.member_id
+        outing.start_date = body_data.get("start_date") or outing.start_date  
+        outing.end_date = body_data.get("end_date") or outing.end_date        
+        outing.title = body_data.get("title") or outing.title
+        outing.description = body_data.get("description") or outing.description
+        outing.public = body_data.get("public") or outing.public
+        outing.member_id = member.member_id
             
-            db.session.commit()
-            return {
+        db.session.commit()
+        return {
                 "Outing updated": "The outing fields have been updated."
             }, 200
-        else:
-            return {"Error": "This outing does not exist or you dont have authority."}, 401
+            
     except (ProgrammingError, DataError, StatementError, ValidationError):
         return {"Error": "Incorrect field format. Please enter correct format."}, 400
 

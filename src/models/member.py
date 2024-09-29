@@ -33,7 +33,7 @@ class MemberSchema(ma.Schema):
     bills = fields.Nested("BillSchema", many= True, exclude= ["member"])
     outings = fields.Nested("OutingSchema", many=True, exclude= ["member"])
     invites = fields.Nested("InviteSchema", many=True, exclude= ["member"])
-    group = fields.Nested("GroupSchema", exclude= ["members","invites"])
+    group = fields.Nested("GroupSchema", exclude= ["members", "invites"])
 
 
     class Meta:
