@@ -268,7 +268,7 @@ How to use the Family Schedulers API endpoints are as follows:
 
 ![auto create group](./docs/auto_create-group.png)
 
-    - Error handling: 
+    - Error Handling: 
         1. Family group entered does not exist.
         2. Using incorrect field formats.
         3. Missing or blank fields.
@@ -300,7 +300,7 @@ How to use the Family Schedulers API endpoints are as follows:
 
 ![member view](./docs/member-view.png)
 
-    -Error handling:
+    -Error Handling:
         1. token used from a deleted member.
 
 ![member error 3](./docs/member_error_handling3.png)
@@ -316,11 +316,11 @@ How to use the Family Schedulers API endpoints are as follows:
 ![member update](./docs/member-update.png)
 
     -Error Handling:
-        1. Member id rtying to update does not belong to your familiy group.
+        1. Member id trying to update does not belong to your familiy group.
         2. Token used from a deleted member.
         3. Not an admin member, so cannot update.
         4. Invalid field format.
-        5. incorrect fields entered.
+        5. Incorrect fields entered.
 
 ![member error 5](./docs/member-error_handling4.png)
 
@@ -347,7 +347,14 @@ How to use the Family Schedulers API endpoints are as follows:
     - Expected Response: HTTP status code 200 OK, a JSON response advising which family group id has been deleted.
     - Authentication Methods: jwt_token, is_admin = true
 
-![]
+![group delete](./docs/group-delete.png)
+
+    - Error Handling:
+        1. Not an admin member, so cannot delete a group.
+        2. Group id does not exist.
+        3. Cannot delete a group id the admin member does not belong to.
+
+![group error handling](./docs/group_error_handling.png)
 
 - #### 7. /bill/create
     - Description: Allows a member to create a bill and add it to the database.
@@ -431,7 +438,7 @@ How to use the Family Schedulers API endpoints are as follows:
     - Error Handling:
         1. Empty fields entered.
         2. Invalid token.
-        3. Invalid fielf format entered.
+        3. Invalid field format entered.
 
 ![outing error 1](./docs/outing_error_handling1.png)
 
@@ -462,9 +469,9 @@ How to use the Family Schedulers API endpoints are as follows:
 ![outing update](./docs/outing-update.png)
 
     - Error Handling
-        1. Outning id does not exist.
+        1. Outing id does not exist.
         2. Incorrect field format.
-        3. Update of outings not in same family group not allowed.
+        3. Update of outings not in same family group, so not allowed.
         4. Invalid token.
 
 ![outing error 3](./docs/outing_error_handling3.png)
@@ -480,7 +487,7 @@ How to use the Family Schedulers API endpoints are as follows:
 
     - Error Handling:
         1. Outing id does not exist
-        2. Deleting of outings not in sam family group not allowed.
+        2. Deleting of outings not in same family group, so not allowed.
         3. Not an admin member.
 
 ![outing error 4](./docs/outing_error_handling4.png)
@@ -496,9 +503,9 @@ How to use the Family Schedulers API endpoints are as follows:
 ![invite public](./docs/invite-public.png)
 
     - Error Handling:
-        1. Outing id or grou id do not exist.
+        1. Outing id or group id does not exist.
         2. Incorrect field format.
-        3. Cannot create public invite for outings not done by family group mamber or that are private outings.
+        3. Cannot create public invite for outings not done by a family group member or that are private outings.
         4. Not an admin, so cannot create a public invite.
 
 ![invite error 1](./docs/invite_error_handling1.png)

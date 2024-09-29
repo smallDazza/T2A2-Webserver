@@ -133,21 +133,24 @@ def update_outing(id):
 @outing_bp.route("/delete/<int:id>", methods= ["DELETE"])
 @jwt_required()
 def delete_bill(id):
-    stmt = db.select(Outing).filter_by(out_id = id)
-    outing = db.session.scalar(stmt)
-    stmt2 = db.select(Member).filter_by(member_id = get_jwt_identity())
-    member = db.session.scalar(stmt2)
+    try:
+        stmt = db.select(Outing).filter_by(out_id = id)
+        outing = db.session.scalar(stmt)
+        stmt2 = db.select(Member).filter_by(member_id = get_jwt_identity())
+        member = db.session.scalar(stmt2)
 
-    if not outing:
-        return {"Error": f"Outing with id: {id}, does not exist."}, 404
-    if outing.member.fam_group_id != member.fam_group_id:
-            return {"Error": "Deleting of Outings not in your same family group is not allowed. "}, 401
-    
-    if member.is_admin and member:
-        db.session.delete(outing)
-        db.session.commit()
-        return {"message": f"Outing with id: {id} is deleted."}, 200
-    else:
-        return {"Error": "You are not a admin member and cannot delete Outings."}, 404
+        if not outing:
+            return {"Error": f"Outing with id: {id}, does not exist."}, 404
+        if outing.member.fam_group_id != member.fam_group_id:
+                return {"Error": "Deleting of Outings not in your same family group is not allowed. "}, 401
+        
+        if member.is_admin and member:
+            db.session.delete(outing)
+            db.session.commit()
+            return {"message": f"Outing with id: {id} is deleted."}, 200
+        else:
+            return {"Error": "You are not a admin member and cannot delete Outings."}, 404
+    except AttributeError:
+        return {"Error": "Invalid token used. Delete not allowed."}, 401
 
     
