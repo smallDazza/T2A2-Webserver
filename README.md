@@ -1,5 +1,19 @@
 # T2A2 API Webserver - Family Scheduler API
 
+## GitHub Repository Link: [Family Scheduler API - GitHub Repository](https://github.com/smallDazza/T2A2-Webserver)
+
+## Table Of Contents:
+
+- [R1 - The problem to solve](#r1-the-problem-this-app-will-solve)
+- [R2 - Task management of the SDLC](#r2-task-management-of-the-sdlc)
+- [R3 - Third Party Services](#r3-third-party-services)
+- [R4 - Apps Database System](#r4-apps-database-system)
+- [R5 - ORM used in this app](#r5-orm-used-in-this-app)
+- [R6 - Designed ERD Diagram](#r6-designed-erd-diagram)
+- [R7 - Implemented Models](#r7-implemented-models)
+- [R8 - API Endpoints](#r8-api-endpoints)
+
+
 ### R1. The problem this app will solve:
 Forgot that water bill ? or cant remember the date of that family bbq ? were you invited to your cousins birthday party ?
 
@@ -540,4 +554,6 @@ How to use the Family Schedulers API endpoints are as follows:
         3. Invalid token.
 
 ![invite error 3](./docs/invite_error_handling3.png)
+
+### Thankyou I hope this Family Scheduler App helps with all your families needs.
 
