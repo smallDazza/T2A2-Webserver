@@ -216,7 +216,7 @@ In the design of this ERD diagram and legend I have used CROWS FOOT NOTATION and
 - from family_group to family_member = mandatory one to many because a member must belong to a group and can have many members.
 - from family_member to bill = optional one to many because a member may or may not have many bills.
 - from family_member to outing = optional one to many because a member may or may not have many outings.
-- from family_group to invite_outing = mandatory one to many because a invite to a outing must belong to a group and can have many invites.
+- from family_group to invite_outing = optional one to many because a invite to a outing can belong to a group and can have many invites.
 - from family_member to invite_outing = optional one to many because a member may or may not have many invites to outings.
 - from outing to invite_outing = mandatory one to many because a invite to a outing must belong to an outing and can have many invites.
 
@@ -555,5 +555,5 @@ How to use the Family Schedulers API endpoints are as follows:
 
 ![invite error 3](./docs/invite_error_handling3.png)
 
-### Thankyou I hope this Family Scheduler App helps with all your families needs.
+### Thankyou I hope this Family Scheduler App helps with all your families scheduling needs.
 
